@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:laundry_app/views/home_view.dart';
 import '../controllers/auth_controller.dart';
 import 'register_view.dart';
 import 'widgets/custom_textfield.dart';
@@ -89,7 +90,7 @@ class LoginView extends StatelessWidget {
                         backgroundColor: const Color(0xFF2196F3),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
                       ),
-                      onPressed: () => authC.login(), 
+                      onPressed: () => Get.to(() => HomeView()),// authC.login(), 
 
                       child: const Text('MASUK', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                     ),

@@ -44,7 +44,7 @@ class HeaderCurve extends StatelessWidget {
             Icon(Icons.local_laundry_service, size: 80, color: Colors.white),
             SizedBox(height: 10),
             Text(
-              'LaundryApp',
+              'Kiloan',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 28,
