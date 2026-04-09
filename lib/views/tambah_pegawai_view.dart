@@ -21,16 +21,19 @@ class TambahPegawaiView extends StatelessWidget {
 
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: const Offset(0, -5))]),
-        child: ElevatedButton(
-          onPressed: () => tamC.simpanData(),
+        decoration: const BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -5))]),
+        child: Obx(() => ElevatedButton(
+          onPressed: tamC.isLoading.value ? null : () => tamC.simpanData(),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF2196F3),
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+            disabledBackgroundColor: Colors.grey,
           ),
-          child: const Text("LANJUTKAN", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
-        ),
+          child: tamC.isLoading.value 
+              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              : const Text("SIMPAN AKUN KASIR", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+        )),
       ),
 
       body: SingleChildScrollView(
@@ -39,11 +42,11 @@ class TambahPegawaiView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            _buildLabel("Nama Pegawai"),
+            _buildLabel("Nama Lengkap"),
             _buildTextField(hint: "Masukkan nama pegawai", controller: tamC.namaCtrl),
             const SizedBox(height: 20),
 
-            _buildLabel("Telepon"),
+            _buildLabel("Telepon / WhatsApp"),
             _buildTextField(
               hint: "081234567890", 
               controller: tamC.teleponCtrl,
@@ -51,19 +54,20 @@ class TambahPegawaiView extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            _buildLabel("Username (Untuk Login)"),
+            _buildLabel("Email (Untuk Login)"),
             _buildTextField(
-              hint: "Contoh: kasir_mawar", 
-              controller: tamC.usernameCtrl,
+              hint: "Contoh: kasir1@rutarolaundry.com", 
+              controller: tamC.emailCtrl,
+              keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 20),
 
-            _buildLabel("Kata Sandi"),
+            _buildLabel("Kata Sandi (Minimal 6 karakter)"),
             Obx(() => TextField(
               controller: tamC.passwordCtrl,
               obscureText: tamC.isPasswordHidden.value,
               decoration: InputDecoration(
-                hintText: "Buat kata sandi",
+                hintText: "Buat kata sandi sementara",
                 hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
                 filled: true,
                 fillColor: Colors.grey.shade50,
@@ -84,7 +88,7 @@ class TambahPegawaiView extends StatelessWidget {
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(text, style: const TextStyle(fontSize: 14, color: Colors.black54)),
+      child: Text(text, style: const TextStyle(fontSize: 14, color: Colors.black54, fontWeight: FontWeight.w500)),
     );
   }
 

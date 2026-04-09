@@ -1,82 +1,98 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'user_controller.dart';
 
 class PembayaranController extends GetxController {
+  final supabase = Supabase.instance.client;
+  final userC = Get.find<UserController>();
 
-  var totalTagihan = 30080.obs; 
+  var totalTagihan = 0.obs;
+  var idTransaksi = 0.obs;
+  var idCustomer = 0.obs;
 
   var selectedTab = 0.obs;
-
   var uangDiterima = 0.obs;
   final uangDiterimaCtrl = TextEditingController();
-
-  var selectedMethod = "".obs; 
+  var selectedMethod = "".obs;
 
   int get kembalian {
     int sisa = uangDiterima.value - totalTagihan.value;
     return sisa < 0 ? 0 : sisa;
   }
 
-  void changeTab(int index) {
-    selectedTab.value = index;
-    selectedMethod.value = ""; 
-  }
-
   void updateUangDiterima(String val) {
-    if (val.isEmpty) {
-      uangDiterima.value = 0;
-    } else {
-
-      String cleanText = val.replaceAll(RegExp(r'[^0-9]'), '');
-
-      if (cleanText.isEmpty) {
-        uangDiterima.value = 0;
-      } else {
-        uangDiterima.value = int.parse(cleanText);
-      }
-    }
-
-    uangDiterima.refresh(); 
+    String cleanText = val.replaceAll(RegExp(r'[^0-9]'), '');
+    uangDiterima.value = cleanText.isEmpty ? 0 : int.parse(cleanText);
   }
 
   void setUangCepat(int nominal) {
     uangDiterima.value = nominal;
-
     uangDiterimaCtrl.text = formatRupiah(nominal);
-    uangDiterima.refresh();
   }
 
-  void jadikanBon() {
-    Get.defaultDialog(
-      title: "Konfirmasi",
-      middleText: "Catat transaksi ini sebagai BON?",
-      textCancel: "Batal",
-      textConfirm: "Ya, Bon",
-      confirmTextColor: Colors.white,
-      buttonColor: Colors.orange,
-      onConfirm: () {
-        Get.back();
-        Get.back();
-        Get.snackbar("Berhasil", "Transaksi dicatat sebagai Belum Lunas", 
-          backgroundColor: Colors.orange, colorText: Colors.white);
-      }
-    );
+  void changeTab(int index) {
+    selectedTab.value = index;
+    selectedMethod.value = "";
   }
 
-  void prosesBayar() {
-    String metode = selectedTab.value == 0 ? "Tunai" : selectedMethod.value;
-    Get.back();
-    Get.snackbar(
-      "Sukses", 
-      "Pembayaran Lunas via $metode", 
-      backgroundColor: Colors.green, 
-      colorText: Colors.white
-    );
+  String formatRupiah(int val) {
+    return val.toString().replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
   }
 
-  String formatRupiah(int angka) {
-    return angka.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+  Future<void> prosesBayar() async {
+    try {
+      String metode = selectedTab.value == 0 ? "Tunai" : selectedMethod.value;
+
+      await supabase.from('transactions').update({
+        'total_dibayar': totalTagihan.value,
+        'status_pembayaran': 'Lunas',
+      }).eq('id', idTransaksi.value);
+
+      await supabase.from('cashflows').insert({
+        'outlet_id': userC.outletId,
+        'user_id': userC.currentUser.value?.id,
+        'transaction_id': idTransaksi.value,
+        'tipe_arus': 'Pemasukan',
+        'nominal': totalTagihan.value,
+        'metode_bayar': metode,
+        'keterangan': 'Pelunasan Nota',
+      });
+
+      Get.offAllNamed('/home');
+      Get.snackbar(
+        "Sukses",
+        "Pembayaran Lunas via $metode",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar("Error", "Gagal memproses pembayaran: $e");
+    }
+  }
+
+  Future<void> jadikanBon() async {
+    try {
+      await supabase.from('transactions').update({
+        'status_pembayaran': 'Belum Lunas',
+      }).eq('id', idTransaksi.value);
+
+      await supabase.rpc('increment_customer_kasbon', params: {
+        'row_id': idCustomer.value,
+        'amount': totalTagihan.value,
+      });
+
+      Get.offAllNamed('/home');
+      Get.snackbar(
+        "Info",
+        "Transaksi dicatat sebagai BON",
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar("Error", "Gagal mencatat BON: $e");
+    }
   }
 
   @override

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart'; 
-
 import 'package:get/get.dart';
 import 'package:laundry_app/views/kelola_layanan_view.dart';
 import 'package:laundry_app/views/kelola_pegawai_view.dart';
@@ -9,6 +8,7 @@ import 'package:laundry_app/views/outlet_view.dart';
 import 'package:laundry_app/views/profil_view.dart';
 import '../controllers/home_controller.dart';
 import '../controllers/pengaturan_controller.dart';
+import '../controllers/user_controller.dart';
 import 'widgets/navbar.dart';
 
 class PengaturanView extends StatelessWidget {
@@ -16,22 +16,20 @@ class PengaturanView extends StatelessWidget {
 
   final PengaturanController pengC = Get.put(PengaturanController());
   final HomeController homeC = Get.find<HomeController>();
+  final UserController userC = Get.find<UserController>();
 
   @override
   Widget build(BuildContext context) {
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       homeC.changeBottomNav(3); 
     });
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA), 
-
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false, 
-
         title: Row(
           children: [
             Container(
@@ -47,13 +45,10 @@ class PengaturanView extends StatelessWidget {
           IconButton(icon: const Icon(Icons.notifications_none, color: Color(0xFF2196F3), size: 28), onPressed: () {}),
         ],
       ),
-
       bottomNavigationBar: CustomBottomNav(),
-
       body: SingleChildScrollView(
         child: Column(
           children: [
-
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -63,20 +58,25 @@ class PengaturanView extends StatelessWidget {
               ),
               child: Row(
                 children: [
-
                   CircleAvatar(
                     radius: 30,
                     backgroundColor: Colors.grey.shade200,
                     child: const FaIcon(FontAwesomeIcons.solidUser, color: Colors.grey, size: 30),
                   ),
                   const SizedBox(width: 16),
-
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("raya laundry", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
+                        Obx(() => Text(
+                          userC.currentUser.value?.namaLengkap ?? "User",
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF102A43))
+                        )),
                         const SizedBox(height: 6),
+                        Obx(() => Text(
+                          userC.currentUser.value?.role.toUpperCase() ?? "",
+                          style: TextStyle(fontSize: 12, color: Colors.blue.shade700, fontWeight: FontWeight.bold)
+                        )),
                       ],
                     ),
                   ),
@@ -84,30 +84,36 @@ class PengaturanView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-
             Container(
               color: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Column(
                 children: [
-
                   _buildMenuItem(
                     icon: FontAwesomeIcons.userTie, 
-                    title: "Profil Pemilik", 
-                    subtitle: "Data diri pemilik laundry", 
+                    title: "Profil Saya", 
+                    subtitle: "Data diri pengguna laundry", 
                     iconColor: Colors.blue.shade700,
                     onTap: () {Get.to(() => ProfilView());}
                   ),
+                  
                   _divider(),
 
-                  _buildMenuItem(
-                    icon: FontAwesomeIcons.store, 
-                    title: "Edit Profil", 
-                    subtitle: "Edit nama outlet, alamat, jam operasional", 
-                    iconColor: Colors.teal.shade500,
-                    onTap: () {Get.to(() => OutletView());}
+                  Obx(() => userC.isOwner 
+                    ? Column(
+                        children: [
+                          _buildMenuItem(
+                            icon: FontAwesomeIcons.store, 
+                            title: "Edit Profil Outlet", 
+                            subtitle: "Edit nama outlet, alamat, jam operasional", 
+                            iconColor: Colors.teal.shade500,
+                            onTap: () {Get.to(() => OutletView());}
+                          ),
+                          _divider(),
+                        ],
+                      )
+                    : const SizedBox.shrink()
                   ),
-                  _divider(),
 
                   _buildMenuItem(
                     icon: FontAwesomeIcons.users, 
@@ -116,29 +122,35 @@ class PengaturanView extends StatelessWidget {
                     iconColor: Colors.lightBlue.shade600,
                     onTap: () {Get.to(() => KelolaPelangganView());}
                   ),
+                  
                   _divider(),
 
-                  _buildMenuItem(
-                    icon: FontAwesomeIcons.shirt, 
-                    title: "Kelola Layanan/Produk", 
-                    subtitle: "Tambah, edit, hapus layanan dan produk laundry", 
-                    iconColor: Colors.cyan.shade600,
-                    onTap: () {Get.to(() => KelolaLayananView());}
-                  ),
-                  _divider(),
-
-                  _buildMenuItem(
-                    icon: FontAwesomeIcons.userGear, 
-                    title: "Kelola Pegawai", 
-                    subtitle: "Daftar pegawai. Tambah, edit, nonaktifkan pegawai", 
-                    iconColor: Colors.indigo.shade500,
-                    onTap: () {Get.to(() => KelolaPegawaiView());}
+                  Obx(() => userC.isOwner 
+                    ? Column(
+                        children: [
+                          _buildMenuItem(
+                            icon: FontAwesomeIcons.shirt, 
+                            title: "Kelola Layanan/Produk", 
+                            subtitle: "Tambah, edit, hapus layanan laundry", 
+                            iconColor: Colors.cyan.shade600,
+                            onTap: () {Get.to(() => KelolaLayananView());}
+                          ),
+                          _divider(),
+                          _buildMenuItem(
+                            icon: FontAwesomeIcons.userGear, 
+                            title: "Kelola Pegawai", 
+                            subtitle: "Tambah, edit, nonaktifkan pegawai", 
+                            iconColor: Colors.indigo.shade500,
+                            onTap: () {Get.to(() => KelolaPegawaiView());}
+                          ),
+                        ],
+                      )
+                    : const SizedBox.shrink()
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 32),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: SizedBox(
@@ -156,7 +168,6 @@ class PengaturanView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40), 
-
           ],
         ),
       ),
@@ -170,7 +181,6 @@ class PengaturanView extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
-
             Container(
               width: 48, height: 48,
               decoration: BoxDecoration(
@@ -180,7 +190,6 @@ class PengaturanView extends StatelessWidget {
               child: Center(child: FaIcon(icon, color: iconColor, size: 22)),
             ),
             const SizedBox(width: 16),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,7 +200,6 @@ class PengaturanView extends StatelessWidget {
                 ],
               ),
             ),
-
             Icon(Icons.chevron_right, color: Colors.grey.shade400),
           ],
         ),
@@ -202,7 +210,6 @@ class PengaturanView extends StatelessWidget {
   Widget _divider() {
     return Padding(
       padding: const EdgeInsets.only(left: 84, right: 20), 
-
       child: Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
     );
   }

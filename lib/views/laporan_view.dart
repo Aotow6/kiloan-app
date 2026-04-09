@@ -13,38 +13,47 @@ class LaporanView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       homeC.changeBottomNav(2); 
     });
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), 
+      backgroundColor: const Color(0xFFF5F7FA),
 
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-
-        automaticallyImplyLeading: false, 
+        automaticallyImplyLeading: false,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(4), 
-              decoration: BoxDecoration(color: const Color(0xFF2196F3).withOpacity(0.2), borderRadius: BorderRadius.circular(6)), 
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2196F3).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(6)
+              ),
               child: const Icon(Icons.water_drop, color: Color(0xFF2196F3), size: 24)
             ),
             const SizedBox(width: 8),
-            const Text("kiloan", style: TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 22)),
+            const Text(
+              "kiloan",
+              style: TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 22)
+            ),
           ],
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const FaIcon(FontAwesomeIcons.filePdf, color: Color(0xFF102A43)), 
+            icon: const FaIcon(FontAwesomeIcons.filePdf, color: Color(0xFF102A43)),
             onPressed: () {
-              Get.snackbar("Download PDF", "Fitur cetak PDF belum tersedia", backgroundColor: Colors.orange, colorText: Colors.white);
+              Get.snackbar(
+                "Download PDF",
+                "Fitur cetak PDF belum tersedia",
+                backgroundColor: Colors.orange,
+                colorText: Colors.white
+              );
             }
           ),
           const SizedBox(width: 8),
@@ -56,7 +65,6 @@ class LaporanView extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -65,7 +73,7 @@ class LaporanView extends StatelessWidget {
               border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
             ),
             child: const Text(
-              "Ringkasan", 
+              "Ringkasan",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF102A43))
             ),
           ),
@@ -76,7 +84,10 @@ class LaporanView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Pilih Periode :", style: TextStyle(color: Colors.black87, fontSize: 14)),
+                const Text(
+                  "Pilih Periode :",
+                  style: TextStyle(color: Colors.black87, fontSize: 14)
+                ),
                 const SizedBox(height: 12),
 
                 GestureDetector(
@@ -91,7 +102,7 @@ class LaporanView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Obx(() => Text(
-                          lapC.selectedPeriode.value, 
+                          lapC.selectedPeriode.value,
                           style: const TextStyle(fontSize: 15, color: Colors.black87, fontWeight: FontWeight.w500)
                         )),
                         const Icon(Icons.arrow_drop_down, color: Colors.black87),
@@ -110,7 +121,10 @@ class LaporanView extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text("PROSES", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
+                    child: const Text(
+                      "PROSES",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)
+                    ),
                   ),
                 ),
               ],
@@ -118,27 +132,108 @@ class LaporanView extends StatelessWidget {
           ),
 
           Expanded(
-            child: Center(
-              child: SingleChildScrollView(
+            child: Obx(() {
+              if (lapC.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              String formatRupiah(int angka) {
+                return "Rp ${angka.toString().replaceAllMapped(
+                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                  (Match m) => '${m[1]}.'
+                )}";
+              }
+
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5))
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          const Text(
+                            "Total Pendapatan Bulanan",
+                            style: TextStyle(color: Colors.white70, fontSize: 14)
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            formatRupiah(lapC.totalPemasukan.value),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
-                    Icon(Icons.analytics_outlined, size: 120, color: Colors.blue.shade100),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 40),
-                      child: Text(
-                        "Pilih Periode terlebih dahulu\nUntuk\nMenampilkan Ringkasan",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, color: Colors.black54, height: 1.5),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade50,
+                                  borderRadius: BorderRadius.circular(12)
+                                ),
+                                child: const Icon(
+                                  Icons.receipt_long,
+                                  color: Color(0xFF2196F3),
+                                  size: 30
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              const Text(
+                                "Total Pesanan Masuk",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Color(0xFF102A43),
+                                  fontWeight: FontWeight.w600
+                                )
+                              ),
+                            ],
+                          ),
+                          Text(
+                            "${lapC.totalPesanan.value} Nota",
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF102A43)
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ),
+              );
+            }),
           ),
         ],
       ),
@@ -158,9 +253,11 @@ class LaporanView extends StatelessWidget {
             children: [
               const Padding(
                 padding: EdgeInsets.only(left: 24, bottom: 16),
-                child: Text("Pilih Bulan", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
+                child: Text(
+                  "Pilih Bulan",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF102A43))
+                ),
               ),
-
               Flexible(
                 child: ListView.builder(
                   shrinkWrap: true,
@@ -171,7 +268,10 @@ class LaporanView extends StatelessWidget {
                       onTap: () => lapC.ubahPeriode(bulan),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                        child: Text(bulan, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+                        child: Text(
+                          bulan,
+                          style: const TextStyle(fontSize: 16, color: Colors.black87)
+                        ),
                       ),
                     );
                   },
