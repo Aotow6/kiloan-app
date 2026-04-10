@@ -10,6 +10,75 @@ class LoginView extends StatelessWidget {
 
   final AuthController authC = Get.put(AuthController());
 
+  void _tampilkanDialogLupaPassword(BuildContext context, AuthController authC) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Lupa Password?",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF102A43),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Masukkan email akunmu, kami akan mengirimkan link untuk mereset password.",
+              style: TextStyle(fontSize: 13, color: Colors.black54),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: authC.resetEmailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                hintText: "Contoh: rabi@gmail.com",
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => authC.kirimResetPassword(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2196F3),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  "KIRIM LINK RESET",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,9 +117,7 @@ class LoginView extends StatelessWidget {
                           ),
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Text("|",
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 16)),
+                            child: Text("|", style: TextStyle(color: Colors.grey)),
                           ),
                           GestureDetector(
                             onTap: () => authC.isPemilik.value = false,
@@ -69,6 +136,7 @@ class LoginView extends StatelessWidget {
                           ),
                         ],
                       )),
+
                   const SizedBox(height: 30),
 
                   CustomTextField(
@@ -86,15 +154,17 @@ class LoginView extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: TextButton(
-                      onPressed: () => authC.login(),
+                      onPressed: () => _tampilkanDialogLupaPassword(context, authC),
                       child: const Text(
                         'Lupa Password ?',
                         style: TextStyle(
-                            color: Color(0xFF00BCD4),
-                            fontWeight: FontWeight.bold),
+                          color: Color(0xFF00BCD4),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 20),
 
                   SizedBox(
@@ -129,6 +199,7 @@ class LoginView extends StatelessWidget {
                                 ),
                         )),
                   ),
+
                   const SizedBox(height: 40),
 
                   Row(
@@ -140,8 +211,9 @@ class LoginView extends StatelessWidget {
                         child: const Text(
                           "DAFTAR SEKARANG",
                           style: TextStyle(
-                              color: Color(0xFF2196F3),
-                              fontWeight: FontWeight.bold),
+                            color: Color(0xFF2196F3),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],

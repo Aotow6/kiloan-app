@@ -11,6 +11,7 @@ class AuthController extends GetxController {
 
   final emailLoginCtrl = TextEditingController();
   final passwordLoginCtrl = TextEditingController();
+  final resetEmailCtrl = TextEditingController();
 
   final namaLengkapCtrl = TextEditingController();
   final namaLaundryCtrl = TextEditingController();
@@ -112,10 +113,51 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<void> kirimResetPassword() async {
+  if (resetEmailCtrl.text.isEmpty) {
+    Get.snackbar(
+      "Error",
+      "Masukkan email kamu dulu",
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+    return;
+  }
+
+  try {
+    isLoading.value = true;
+
+    await supabase.auth.resetPasswordForEmail(
+      resetEmailCtrl.text.trim(),
+    );
+
+    Get.back();
+
+    Get.snackbar(
+      "Berhasil",
+      "Cek email kamu untuk reset password",
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 5),
+    );
+  } catch (e) {
+    Get.snackbar(
+      "Gagal",
+      "Email tidak ditemukan atau error",
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+  } finally {
+    isLoading.value = false;
+    resetEmailCtrl.clear();
+  }
+}
+
   @override
   void onClose() {
     emailLoginCtrl.dispose();
     passwordLoginCtrl.dispose();
+    resetEmailCtrl.dispose();
     namaLengkapCtrl.dispose();
     namaLaundryCtrl.dispose();
     emailRegisCtrl.dispose();
