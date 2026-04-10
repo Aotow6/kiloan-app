@@ -10,15 +10,21 @@ class HomeView extends StatelessWidget {
 
   final HomeController homeC = Get.put(HomeController());
 
+  String formatRupiah(int angka) {
+    return "Rp ${angka.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    )}";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      extendBody: false,
       bottomNavigationBar: CustomBottomNav(),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 40),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -50,7 +56,6 @@ class HomeView extends StatelessWidget {
                         "Belum ada pemberitahuan baru hari ini.",
                         backgroundColor: Colors.white,
                         colorText: Colors.black87,
-                        icon: const Icon(Icons.notifications_active, color: Colors.blue),
                         snackPosition: SnackPosition.TOP,
                       );
                     },
@@ -80,13 +85,6 @@ class HomeView extends StatelessWidget {
               Obx(() {
                 if (homeC.isLoading.value) {
                   return const Center(child: CircularProgressIndicator());
-                }
-
-                String formatRupiah(int angka) {
-                  return "Rp ${angka.toString().replaceAllMapped(
-                    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                    (Match m) => '${m[1]}.',
-                  )}";
                 }
 
                 return Container(
@@ -124,7 +122,6 @@ class HomeView extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: const Color(0xFF1E88E5),
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 4))],
                 ),
                 child: Column(
                   children: [
@@ -135,69 +132,87 @@ class HomeView extends StatelessWidget {
                           Expanded(
                             child: GestureDetector(
                               onTap: () => homeC.isTabTransaksi.value = false,
-                              child: Container(
-                                color: Colors.transparent,
-                                child: Column(
-                                  children: [
-                                    Text("KEUANGAN", style: TextStyle(color: !homeC.isTabTransaksi.value ? Colors.white : Colors.white.withOpacity(0.6), fontWeight: FontWeight.bold, fontSize: 13)),
-                                    const SizedBox(height: 8),
-                                    if (!homeC.isTabTransaksi.value) Container(height: 2, width: double.infinity, color: Colors.white),
-                                  ],
-                                ),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    "KEUANGAN",
+                                    style: TextStyle(
+                                      color: !homeC.isTabTransaksi.value
+                                          ? Colors.white
+                                          : Colors.white.withOpacity(0.6),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (!homeC.isTabTransaksi.value)
+                                    Container(height: 2, width: double.infinity, color: Colors.white),
+                                ],
                               ),
                             ),
                           ),
                           Expanded(
                             child: GestureDetector(
                               onTap: () => homeC.isTabTransaksi.value = true,
-                              child: Container(
-                                color: Colors.transparent,
-                                child: Column(
-                                  children: [
-                                    Text("TRANSAKSI", style: TextStyle(color: homeC.isTabTransaksi.value ? Colors.white : Colors.white.withOpacity(0.6), fontWeight: FontWeight.bold, fontSize: 13)),
-                                    const SizedBox(height: 8),
-                                    if (homeC.isTabTransaksi.value) Container(height: 2, width: double.infinity, color: Colors.white),
-                                  ],
-                                ),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    "TRANSAKSI",
+                                    style: TextStyle(
+                                      color: homeC.isTabTransaksi.value
+                                          ? Colors.white
+                                          : Colors.white.withOpacity(0.6),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (homeC.isTabTransaksi.value)
+                                    Container(height: 2, width: double.infinity, color: Colors.white),
+                                ],
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Transform.translate(
-                      offset: const Offset(0, -2),
-                      child: Container(height: 1, width: double.infinity, color: Colors.white.withOpacity(0.2)),
-                    ),
+
                     const SizedBox(height: 24),
-                    homeC.isTabTransaksi.value 
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildBlueCardItem(Icons.download, "${homeC.countMasukHariIni.value} Masuk", () {
-                            Get.put(PesananController()).changeTab(0);
-                            homeC.changeBottomNav(1);
-                            Get.to(() => PesananView());
-                          }),
-                          _buildBlueCardItem(Icons.push_pin_outlined, "${homeC.countHarusSelesai.value} Harus Selesai", () {
-                            Get.snackbar("Harus Selesai", "Ini daftar pesanan yang deadline hari ini.", backgroundColor: Colors.white);
-                          }),
-                          _buildBlueCardItem(Icons.sync, "${homeC.countTerlambat.value} Terlambat", () {
-                            Get.snackbar("Terlambat", "Pesanan ini belum selesai walau sudah lewat deadline!", backgroundColor: Colors.red.shade100, colorText: Colors.red.shade900);
-                          }),
-                        ],
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildBlueCardItem(Icons.payments_outlined, "${homeC.countBelumLunas.value} Belum Lunas", () {
-                            Get.snackbar("Piutang", "Ada ${homeC.countBelumLunas.value} pesanan yang belum dibayar pelanggan.", backgroundColor: Colors.orange.shade100);
-                          }),
-                          _buildBlueCardItem(Icons.account_balance_wallet, "Kas Tunai", () {
-                            Get.snackbar("Info", "Lihat rekap selengkapnya di menu Laporan.", backgroundColor: Colors.white);
-                          }),
-                        ],
-                      ),
+
+                    homeC.isTabTransaksi.value
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildBlueCardItem(Icons.download, "${homeC.countMasukHariIni.value} Masuk", () {
+                                Get.put(PesananController()).changeTab(0);
+                                homeC.changeBottomNav(1);
+                                Get.to(() => PesananView());
+                              }),
+                              _buildBlueCardItem(Icons.push_pin_outlined, "${homeC.countHarusSelesai.value} Deadline", () {}),
+                              _buildBlueCardItem(Icons.sync, "${homeC.countTerlambat.value} Telat", () {}),
+                            ],
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildBlueCardItem(
+                                Icons.payments_outlined,
+                                formatRupiah(homeC.nominalPiutang.value),
+                                () {
+                                  Get.snackbar(
+                                    "Detail Piutang",
+                                    "Ada ${homeC.countBelumLunas.value} nota belum lunas",
+                                    backgroundColor: Colors.white,
+                                  );
+                                },
+                              ),
+                              _buildBlueCardItem(
+                                Icons.account_balance_wallet,
+                                "Kas Tunai",
+                                () {
+                                  homeC.changeBottomNav(2);
+                                },
+                              ),
+                            ],
+                          ),
                   ],
                 ),
               )),
@@ -285,12 +300,12 @@ class HomeView extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 1.5),
+              border: Border.all(color: Colors.white),
             ),
-            child: Icon(icon, color: Colors.white, size: 22),
+            child: Icon(icon, color: Colors.white),
           ),
           const SizedBox(height: 8),
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500)),
+          Text(label, style: const TextStyle(color: Colors.white)),
         ],
       ),
     );
@@ -311,7 +326,10 @@ class HomeView extends StatelessWidget {
             Container(
               width: 60,
               height: 60,
-              decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
+              decoration: BoxDecoration(
+                color: bgColor,
+                shape: BoxShape.circle,
+              ),
               child: Icon(icon, size: 30, color: color),
             ),
             Positioned(

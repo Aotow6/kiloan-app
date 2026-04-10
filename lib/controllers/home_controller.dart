@@ -26,6 +26,8 @@ class HomeController extends GetxController {
   var countTerlambat = 0.obs;
   var countBelumLunas = 0.obs;
 
+  var nominalPiutang = 0.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -62,6 +64,7 @@ class HomeController extends GetxController {
       
       int cProses = 0, cSelesai = 0, cDiambil = 0, cBatal = 0;
       int cMasuk = 0, cHarusSelesai = 0, cTerlambat = 0, cBelumLunas = 0;
+      int totalUtang = 0;
       
       for (var item in allTrx) {
         String status = (item['status_pesanan'] ?? '').toString().toLowerCase();
@@ -72,7 +75,12 @@ class HomeController extends GetxController {
         else if (status == 'diambil') cDiambil++;
         else if (status == 'batal') cBatal++;
 
-        if (statusBayar == 'Belum Lunas' && status != 'batal') cBelumLunas++;
+        if (statusBayar != 'Lunas' && status != 'batal') {
+          cBelumLunas++;
+          int tagihan = (item['total_tagihan'] ?? 0) as int;
+          int dibayar = (item['total_dibayar'] ?? 0) as int;
+          totalUtang += (tagihan - dibayar);
+        }
 
         if (item['waktu_masuk'] != null) {
           DateTime waktuMasuk = DateTime.parse(item['waktu_masuk'].toString()).toLocal();
@@ -105,6 +113,7 @@ class HomeController extends GetxController {
       countHarusSelesai.value = cHarusSelesai;
       countTerlambat.value = cTerlambat;
       countBelumLunas.value = cBelumLunas;
+      nominalPiutang.value = totalUtang;
 
       final custBaru = await supabase
           .from('customers')
