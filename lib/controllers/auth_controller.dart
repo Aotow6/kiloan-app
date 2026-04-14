@@ -51,7 +51,7 @@ class AuthController extends GetxController {
   }
 
   // ================= LOGIN =================
-  Future<void> login() async {
+    Future<void> login() async {
     clearErrors();
     bool isValid = true;
     String email = emailLoginCtrl.text.trim();
@@ -61,7 +61,7 @@ class AuthController extends GetxController {
       errEmailLogin.value = "Email wajib diisi";
       isValid = false;
     } else if (!isValidEmail(email)) {
-      errEmailLogin.value = "Format email tidak valid (contoh: budi@gmail.com)";
+      errEmailLogin.value = "Format email tidak valid";
       isValid = false;
     }
 
@@ -74,21 +74,60 @@ class AuthController extends GetxController {
 
     try {
       isLoading.value = true;
-      
+
       final response = await supabase.auth.signInWithPassword(
         email: email,
         password: pass,
       );
 
       if (response.user != null) {
+
+        final userData = await supabase
+            .from('users')
+            .select('role, status_aktif')
+            .eq('id', response.user!.id)
+            .maybeSingle();
+
+        if (userData == null) {
+          await supabase.auth.signOut();
+          Get.snackbar("Error", "Data profil tidak ditemukan di database.", 
+              backgroundColor: Colors.red, colorText: Colors.white);
+          return;
+        }
+
+        bool isAktif = userData['status_aktif'] ?? false;
+
+        String role = userData['role']?.toString().toLowerCase() ?? '';
+
+        if (!isAktif) {
+          await supabase.auth.signOut(); 
+
+          Get.snackbar("Akses Ditolak", "Akun Anda telah dinonaktifkan oleh Pemilik Laundry.",
+              backgroundColor: Colors.red, colorText: Colors.white, duration: const Duration(seconds: 4));
+          return;
+        }
+
+        bool loginAsPemilik = isPemilik.value;
+        if (loginAsPemilik && role != 'owner') {
+          await supabase.auth.signOut();
+          Get.snackbar("Salah Kamar", "Anda bukan Pemilik. Silakan login di tab PEGAWAI.",
+              backgroundColor: Colors.orange, colorText: Colors.white);
+          return;
+        } else if (!loginAsPemilik && role == 'owner') {
+          await supabase.auth.signOut();
+          Get.snackbar("Salah Kamar", "Anda adalah Pemilik. Silakan login di tab PEMILIK.",
+              backgroundColor: Colors.orange, colorText: Colors.white);
+          return;
+        }
+
         final userC = Get.find<UserController>();
         await userC.getUserProfile();
-        
+
         if (userC.outletId != null) {
           Get.offAllNamed('/home');
         } else {
           await supabase.auth.signOut();
-          Get.snackbar("Error", "Data profil user tidak ditemukan");
+          Get.snackbar("Error", "ID Outlet tidak ditemukan.");
         }
       } 
     } catch (e) {

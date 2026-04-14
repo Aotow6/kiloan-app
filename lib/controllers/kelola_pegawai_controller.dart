@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'user_controller.dart';
+import 'tambah_pegawai_controller.dart';
+import '../views/tambah_pegawai_view.dart';
 
 class KelolaPegawaiController extends GetxController {
   final supabase = Supabase.instance.client;
@@ -16,7 +18,6 @@ class KelolaPegawaiController extends GetxController {
     if (userC.outletId != null) fetchPegawai();
   }
 
-  // --- 1. AMBIL DATA PEGAWAI (KASIR) ---
   Future<void> fetchPegawai() async {
     if (userC.outletId == null) return;
     try {
@@ -25,7 +26,8 @@ class KelolaPegawaiController extends GetxController {
           .from('users')
           .select()
           .eq('outlet_id', userC.outletId!)
-          .neq('role', 'Owner') // Sembunyikan akun Owner biar aman
+          .neq('role', 'owner') 
+
           .order('created_at', ascending: false);
 
       listPegawai.value = List<Map<String, dynamic>>.from(data);
@@ -36,18 +38,15 @@ class KelolaPegawaiController extends GetxController {
     }
   }
 
-  // --- 2. UBAH STATUS AKTIF/NONAKTIF ---
   Future<void> toggleStatus(String id, bool currentStatus, String nama) async {
     try {
       bool newStatus = !currentStatus;
-      
-      // Update ke database
+
       await supabase
           .from('users')
           .update({'status_aktif': newStatus})
           .eq('id', id);
 
-      // Refresh list
       await fetchPegawai(); 
 
       String statusText = newStatus ? "Aktif" : "Nonaktif";
@@ -60,7 +59,6 @@ class KelolaPegawaiController extends GetxController {
     }
   }
 
-  // --- 3. HAPUS PEGAWAI ---
   void hapusPegawai(String id, String nama) {
     Get.defaultDialog(
       title: "Hapus Pegawai?",
@@ -71,11 +69,10 @@ class KelolaPegawaiController extends GetxController {
       buttonColor: Colors.red.shade700,
       onConfirm: () async {
         try {
-          // Hapus dari database
           await supabase.from('users').delete().eq('id', id);
-          
-          await fetchPegawai(); // Refresh data
-          Get.back(); // Tutup dialog
+
+          await fetchPegawai(); 
+          Get.back(); 
 
           Get.snackbar("Berhasil", "Data $nama telah dihapus", 
               backgroundColor: Colors.red.shade600, colorText: Colors.white);
@@ -86,5 +83,12 @@ class KelolaPegawaiController extends GetxController {
         }
       }
     );
+  }
+
+  void goToEdit(Map<String, dynamic> pegawai) {
+    final tamC = Get.put(TambahPegawaiController());
+    tamC.setEditMode(pegawai); 
+
+    Get.to(() => TambahPegawaiView());
   }
 }

@@ -16,7 +16,11 @@ class TambahPegawaiView extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back, color: Color(0xFF102A43)), onPressed: () => Get.back()),
-        title: const Text("Tambah Pegawai", style: TextStyle(color: Color(0xFF102A43), fontWeight: FontWeight.bold)),
+
+        title: Obx(() => Text(
+          tamC.isEdit.value ? "Edit Pegawai" : "Tambah Pegawai", 
+          style: const TextStyle(color: Color(0xFF102A43), fontWeight: FontWeight.bold)
+        )),
       ),
 
       bottomNavigationBar: Container(
@@ -28,11 +32,10 @@ class TambahPegawaiView extends StatelessWidget {
             backgroundColor: const Color(0xFF2196F3),
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            disabledBackgroundColor: Colors.grey,
           ),
           child: tamC.isLoading.value 
-              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : const Text("SIMPAN AKUN KASIR", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : const Text("SIMPAN DATA", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
         )),
       ),
 
@@ -42,43 +45,59 @@ class TambahPegawaiView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            _buildLabel("Nama Lengkap"),
-            _buildTextField(hint: "Masukkan nama pegawai", controller: tamC.namaCtrl),
+            _buildLabel("Nama Pegawai"),
+            Obx(() => _buildTextField(
+              hint: "Masukkan nama pegawai", 
+              controller: tamC.namaCtrl,
+              errorText: tamC.errNama.value,
+            )),
             const SizedBox(height: 20),
 
-            _buildLabel("Telepon / WhatsApp"),
-            _buildTextField(
+            _buildLabel("Telepon"),
+            Obx(() => _buildTextField(
               hint: "081234567890", 
               controller: tamC.teleponCtrl,
               keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 20),
-
-            _buildLabel("Email (Untuk Login)"),
-            _buildTextField(
-              hint: "Contoh: kasir1@rutarolaundry.com", 
-              controller: tamC.emailCtrl,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 20),
-
-            _buildLabel("Kata Sandi (Minimal 6 karakter)"),
-            Obx(() => TextField(
-              controller: tamC.passwordCtrl,
-              obscureText: tamC.isPasswordHidden.value,
-              decoration: InputDecoration(
-                hintText: "Buat kata sandi sementara",
-                hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                filled: true,
-                fillColor: Colors.grey.shade50,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                suffixIcon: IconButton(
-                  icon: Icon(tamC.isPasswordHidden.value ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
-                  onPressed: () => tamC.togglePassword(),
-                ),
-              ),
+              errorText: tamC.errTelepon.value,
             )),
+            const SizedBox(height: 20),
+
+            Obx(() {
+              if (tamC.isEdit.value) return const SizedBox.shrink();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildLabel("Email Login"),
+                  _buildTextField(
+                    hint: "Contoh: kasir1@gmail.com", 
+                    controller: tamC.emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    errorText: tamC.errEmail.value,
+                  ),
+                  const SizedBox(height: 20),
+
+                  _buildLabel("Kata Sandi"),
+                  TextField(
+                    controller: tamC.passwordCtrl,
+                    obscureText: tamC.isPasswordHidden.value,
+                    decoration: InputDecoration(
+                      hintText: "Buat kata sandi",
+                      errorText: tamC.errPassword.value,
+                      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.red)),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                      suffixIcon: IconButton(
+                        icon: Icon(tamC.isPasswordHidden.value ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
+                        onPressed: () => tamC.togglePassword(),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }),
           ],
         ),
       ),
@@ -88,21 +107,29 @@ class TambahPegawaiView extends StatelessWidget {
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(text, style: const TextStyle(fontSize: 14, color: Colors.black54, fontWeight: FontWeight.w500)),
+      child: Text(text, style: const TextStyle(fontSize: 14, color: Colors.black54)),
     );
   }
 
-  Widget _buildTextField({required String hint, required TextEditingController controller, TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildTextField({
+    required String hint, 
+    required TextEditingController controller, 
+    TextInputType keyboardType = TextInputType.text,
+    String? errorText,
+  }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
       inputFormatters: keyboardType == TextInputType.phone ? [FilteringTextInputFormatter.digitsOnly] : [],
       decoration: InputDecoration(
         hintText: hint,
+        errorText: errorText, 
+
         hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
         filled: true,
         fillColor: Colors.grey.shade50, 
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.red)),
         contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       ),
     );

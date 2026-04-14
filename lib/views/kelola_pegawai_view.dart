@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../controllers/kelola_pegawai_controller.dart';
+import '../controllers/tambah_pegawai_controller.dart';
 import 'tambah_pegawai_view.dart'; 
 
 class KelolaPegawaiView extends StatelessWidget {
@@ -25,7 +26,12 @@ class KelolaPegawaiView extends StatelessWidget {
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF2196F3),
-        onPressed: () => Get.to(() => TambahPegawaiView()),
+        onPressed: () {
+
+          final tamC = Get.put(TambahPegawaiController());
+          tamC.clearForm();
+          Get.to(() => TambahPegawaiView());
+        },
         child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
 
@@ -54,6 +60,7 @@ class KelolaPegawaiView extends StatelessWidget {
             var pegawai = pegC.listPegawai[index];
             bool isActive = pegawai['status_aktif'] as bool? ?? false;
             String nama = pegawai['nama_lengkap']?.toString() ?? "Tanpa Nama";
+            String noHp = pegawai['no_hp']?.toString() ?? "-";
             String idPegawai = pegawai['id'].toString();
 
             return Container(
@@ -79,7 +86,7 @@ class KelolaPegawaiView extends StatelessWidget {
                       children: [
                         Text(nama, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
                         const SizedBox(height: 4),
-                        Text(pegawai['no_hp']?.toString() ?? "-", style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                        Text(noHp, style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
                       ],
                     ),
                   ),
@@ -90,7 +97,14 @@ class KelolaPegawaiView extends StatelessWidget {
                       Switch(
                         value: isActive,
                         activeColor: Colors.green,
-                        onChanged: (_) => pegC.toggleStatus(idPegawai, isActive, nama),
+                        onChanged: (val) => pegC.toggleStatus(idPegawai, isActive, nama),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined, color: Colors.orange),
+                        constraints: const BoxConstraints(),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+
+                        onPressed: () => pegC.goToEdit(pegawai),
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete_outline, color: Colors.red),
