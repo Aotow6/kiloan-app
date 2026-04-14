@@ -169,7 +169,7 @@ class CariPelangganView extends StatelessWidget {
                     return Column(
                       children: [
                         GestureDetector(
-                          onTap: () => pelC.goToDetail(nama, noHp),
+                          onTap: () => pelC.goToDetail(nama, noHp, p['id']),
                           child: _pelangganItem(
                             inisial: inisial,
                             nama: nama,

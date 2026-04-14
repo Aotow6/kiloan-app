@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../controllers/pelanggan_controller.dart';
 
 class DetailPelangganView extends StatelessWidget {
   final String nama;
   final String phone;
+  final int id; 
 
-  const DetailPelangganView({super.key, required this.nama, required this.phone});
+  DetailPelangganView({super.key, required this.nama, required this.phone, required this.id});
+
+  final PelangganController pelC = Get.find<PelangganController>();
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +25,11 @@ class DetailPelangganView extends StatelessWidget {
         ),
         title: Text(nama, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.settings_outlined, color: Colors.black54)),
+
+          IconButton(
+            onPressed: () => pelC.setEditMode(nama, phone, id), 
+            icon: const Icon(Icons.settings_outlined, color: Colors.black54)
+          ),
         ],
       ),
       body: Stack(
@@ -30,7 +38,6 @@ class DetailPelangganView extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-
                 _buildSectionCard(
                   title: "Profil & Kontak",
                   titleColor: Colors.orange.shade700,
@@ -38,13 +45,14 @@ class DetailPelangganView extends StatelessWidget {
                     children: [
                       _buildInfoRow(Icons.phone_android, phone),
                       const SizedBox(height: 12),
-                      _buildInfoRow(Icons.person, "ggg"),
+
+                      _buildInfoRow(Icons.person, nama),
                     ],
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green),
+                      const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green),
                       const SizedBox(width: 15),
                       Icon(Icons.phone, color: Colors.red.shade400),
                     ],
@@ -87,8 +95,17 @@ class DetailPelangganView extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 100), 
 
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 100),
+                  child: TextButton.icon(
+                    onPressed: () => pelC.hapusPelanggan(id, nama, dariDetail: true),
+                    icon: const Icon(Icons.delete, color: Colors.red), 
+                    label: const Text("Hapus Pelanggan", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                    style: TextButton.styleFrom(backgroundColor: Colors.red.withOpacity(0.1), padding: const EdgeInsets.symmetric(vertical: 14)),
+                  ),
+                )
               ],
             ),
           ),
