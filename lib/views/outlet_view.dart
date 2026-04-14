@@ -49,12 +49,22 @@ class OutletView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildLabel("Nama Outlet", isRequired: true),
-                  _buildTextField(hint: "Contoh: Raya Laundry Samarinda", icon: FontAwesomeIcons.shop, controller: outletC.namaCtrl),
+                  Obx(() => _buildTextField(
+                    hint: "Contoh: Raya Laundry Samarinda", 
+                    icon: FontAwesomeIcons.shop, 
+                    controller: outletC.namaCtrl,
+                    errorText: outletC.errNama.value,
+                  )),
                   const SizedBox(height: 20),
 
                   _buildLabel("Alamat", isRequired: true),
-
-                  _buildTextField(hint: "Jl. Antasari No. 12, Samarinda", icon: FontAwesomeIcons.mapLocationDot, maxLines: 4, controller: outletC.alamatCtrl),
+                  Obx(() => _buildTextField(
+                    hint: "Jl. Antasari No. 12, Samarinda", 
+                    icon: FontAwesomeIcons.mapLocationDot, 
+                    maxLines: 4, 
+                    controller: outletC.alamatCtrl,
+                    errorText: outletC.errAlamat.value,
+                  )),
                   const SizedBox(height: 24),
 
                   const Text("Jam Operasional", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
@@ -62,13 +72,11 @@ class OutletView extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-
                         child: Obx(() => _buildTimePicker(
                           label: "Jam Buka",
                           time: outletC.jamBuka.value,
                           icon: FontAwesomeIcons.doorOpen,
                           onTap: () => outletC.pilihJam(context, true) 
-
                         )),
                       ),
                       const SizedBox(width: 16),
@@ -78,7 +86,6 @@ class OutletView extends StatelessWidget {
                           time: outletC.jamTutup.value,
                           icon: FontAwesomeIcons.doorClosed,
                           onTap: () => outletC.pilihJam(context, false) 
-
                         )),
                       ),
                     ],
@@ -92,14 +99,16 @@ class OutletView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => outletC.simpanProfil(),
+                child: Obx(() => ElevatedButton(
+                  onPressed: outletC.isLoading.value ? null : () => outletC.simpanProfil(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2196F3), padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
-                  child: const Text("Simpan Profil", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
-                ),
+                  child: outletC.isLoading.value 
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text("Simpan Profil", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                )),
               ),
             ),
             const SizedBox(height: 40), 
@@ -121,12 +130,20 @@ class OutletView extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField({required String hint, required IconData icon, int maxLines = 1, TextEditingController? controller}) {
+  Widget _buildTextField({
+    required String hint, 
+    required IconData icon, 
+    int maxLines = 1, 
+    TextEditingController? controller,
+    String? errorText,
+  }) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
       decoration: InputDecoration(
         hintText: hint,
+        errorText: errorText, 
+
         hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
 
         prefixIcon: Padding(
@@ -139,6 +156,7 @@ class OutletView extends StatelessWidget {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF2196F3), width: 1.5)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.red, width: 1.5)),
         contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       ),
     );
@@ -167,4 +185,4 @@ class OutletView extends StatelessWidget {
       ),
     );
   }
-}
+} 
