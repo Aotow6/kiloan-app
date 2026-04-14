@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../controllers/profil_controller.dart';
 
@@ -63,51 +64,68 @@ class ProfilView extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                        child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(color: Color(0xFF2196F3), shape: BoxShape.circle),
-                            child: const Icon(Icons.edit, size: 16, color: Colors.white)),
                       ))
                 ],
               ),
             ),
             const SizedBox(height: 32),
+            
             _buildLabel("Nama"),
-            _buildTextField(profC.namaCtrl, "Satria"),
+            Obx(() => _buildTextField(
+              controller: profC.namaCtrl, 
+              hint: "Masukkan nama",
+              errorText: profC.errNama.value,
+            )),
+            
             const SizedBox(height: 20),
+            
             _buildLabel("Email"),
-            TextField(
+            Obx(() => TextField(
               controller: profC.emailCtrl,
               keyboardType: TextInputType.emailAddress,
-              enabled: true,
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.grey.shade50,
+                errorText: profC.errEmail.value,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.red)),
                 contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                 suffixIcon: const Icon(Icons.edit_outlined, color: Colors.grey),
               ),
-            ),
+            )),
+            
             const SizedBox(height: 20),
+            
             _buildLabel("Telepon"),
-            _buildTextField(profC.teleponCtrl, "083141535335", keyboardType: TextInputType.phone),
+            Obx(() => _buildTextField(
+              controller: profC.teleponCtrl, 
+              hint: "08123456789", 
+              keyboardType: TextInputType.number,
+              errorText: profC.errTelepon.value,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(13)],
+            )),
+            
             const SizedBox(height: 20),
+            
             _buildLabel("Password"),
             Obx(() => TextField(
                   controller: profC.passwordCtrl,
                   obscureText: profC.isPasswordHidden.value,
                   decoration: InputDecoration(
                     hintText: "Kosongkan jika tidak ingin mengubah",
+                    errorText: profC.errPassword.value,
                     hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
                     filled: true,
                     fillColor: Colors.grey.shade50,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.red)),
                     contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                     suffixIcon: IconButton(
                         icon: Icon(profC.isPasswordHidden.value ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
                         onPressed: () => profC.togglePasswordVisibility()),
                   ),
                 )),
+                
             const SizedBox(height: 40),
           ],
         ),
@@ -122,16 +140,25 @@ class ProfilView extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String hint, {TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildTextField({
+    required TextEditingController controller, 
+    required String hint, 
+    TextInputType keyboardType = TextInputType.text,
+    String? errorText,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(
         hintText: hint,
+        errorText: errorText,
         hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
         filled: true,
         fillColor: Colors.grey.shade50,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.red)),
         contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       ),
     );
