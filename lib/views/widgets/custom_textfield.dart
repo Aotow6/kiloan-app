@@ -5,6 +5,7 @@ class CustomTextField extends StatefulWidget {
   final bool isPassword;
   final IconData? prefixIcon;
   final TextEditingController? controller; 
+  final String? errorText; 
 
   const CustomTextField({
     super.key,
@@ -12,6 +13,7 @@ class CustomTextField extends StatefulWidget {
     this.isPassword = false,
     this.prefixIcon,
     this.controller, 
+    this.errorText, 
 
   });
 
@@ -26,9 +28,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        controller: widget.controller, 
+      child: TextFormField( 
 
+        controller: widget.controller, 
         obscureText: widget.isPassword ? _obscureText : false,
         decoration: InputDecoration(
           hintText: widget.hintText,
@@ -52,6 +54,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
           filled: true,
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+
+          errorText: widget.errorText, 
+
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30.0),
             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -59,6 +64,15 @@ class _CustomTextFieldState extends State<CustomTextField> {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30.0),
             borderSide: const BorderSide(color: Color(0xFF2196F3), width: 2),
+          ),
+
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30.0),
+            borderSide: const BorderSide(color: Colors.red, width: 1.5),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30.0),
+            borderSide: const BorderSide(color: Colors.red, width: 2),
           ),
         ),
       ),

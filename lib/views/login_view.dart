@@ -139,17 +139,19 @@ class LoginView extends StatelessWidget {
 
                   const SizedBox(height: 30),
 
-                  CustomTextField(
+                  Obx(() => CustomTextField(
                     hintText: 'Email',
                     prefixIcon: Icons.email_outlined,
                     controller: authC.emailLoginCtrl,
-                  ),
-                  CustomTextField(
+                    errorText: authC.errEmailLogin.value,
+                  )),
+                  Obx(() => CustomTextField(
                     hintText: 'Kata Sandi',
                     isPassword: true,
                     prefixIcon: Icons.lock_outline,
                     controller: authC.passwordLoginCtrl,
-                  ),
+                    errorText: authC.errPasswordLogin.value,
+                  )),
 
                   Align(
                     alignment: Alignment.centerLeft,

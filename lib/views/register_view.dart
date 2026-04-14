@@ -23,26 +23,54 @@ class RegisterView extends StatelessWidget {
                   const Text("Daftar Toko Baru", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
                   const SizedBox(height: 20),
 
-                  CustomTextField(hintText: 'Nama Lengkap', prefixIcon: Icons.person_outline, controller: authC.namaLengkapCtrl),
-                  CustomTextField(hintText: 'Nama Laundry', prefixIcon: Icons.storefront_outlined, controller: authC.namaLaundryCtrl),
-                  CustomTextField(hintText: 'Email', prefixIcon: Icons.email_outlined, controller: authC.emailRegisCtrl),
-                  CustomTextField(hintText: 'Password', isPassword: true, prefixIcon: Icons.lock_outline, controller: authC.passwordRegisCtrl),
-                  CustomTextField(hintText: 'Konfirmasi Password', isPassword: true, prefixIcon: Icons.lock_outline, controller: authC.confirmPasswordCtrl),
+                  Obx(() => CustomTextField(
+                    hintText: 'Nama Lengkap', 
+                    prefixIcon: Icons.person_outline, 
+                    controller: authC.namaLengkapCtrl,
+                    errorText: authC.errNamaLengkap.value,
+                  )),
+                  Obx(() => CustomTextField(
+                    hintText: 'Nama Laundry', 
+                    prefixIcon: Icons.storefront_outlined, 
+                    controller: authC.namaLaundryCtrl,
+                    errorText: authC.errNamaLaundry.value,
+                  )),
+                  Obx(() => CustomTextField(
+                    hintText: 'Email', 
+                    prefixIcon: Icons.email_outlined, 
+                    controller: authC.emailRegisCtrl,
+                    errorText: authC.errEmailRegis.value,
+                  )),
+                  Obx(() => CustomTextField(
+                    hintText: 'Password', 
+                    isPassword: true, 
+                    prefixIcon: Icons.lock_outline, 
+                    controller: authC.passwordRegisCtrl,
+                    errorText: authC.errPasswordRegis.value,
+                  )),
+                  Obx(() => CustomTextField(
+                    hintText: 'Konfirmasi Password', 
+                    isPassword: true, 
+                    prefixIcon: Icons.lock_outline, 
+                    controller: authC.confirmPasswordCtrl,
+                    errorText: authC.errConfirmPassword.value,
+                  )),
 
                   const SizedBox(height: 30),
 
                   SizedBox(
                     width: double.infinity,
                     height: 50,
-                    child: ElevatedButton(
+                    child: Obx(() => ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2196F3),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
                       ),
-                      onPressed: () => authC.register(), 
-
-                      child: const Text('DAFTAR', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                    ),
+                      onPressed: authC.isLoading.value ? null : () => authC.register(), 
+                      child: authC.isLoading.value 
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text('DAFTAR', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                    )),
                   ),
                   const SizedBox(height: 30),
 
@@ -51,7 +79,6 @@ class RegisterView extends StatelessWidget {
                     children: [
                       const Text("Sudah punya akun ? "),
                       GestureDetector(
-
                         onTap: () => Get.back(),
                         child: const Text("MASUK", style: TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold)),
                       ),
