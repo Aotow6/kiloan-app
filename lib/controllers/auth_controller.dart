@@ -27,7 +27,7 @@ class AuthController extends GetxController {
   var errPasswordRegis = RxnString();
   var errConfirmPassword = RxnString();
 
-  // --- STATE PESAN ERROR LOGIN (BARU) ---
+  // --- STATE PESAN ERROR LOGIN ---
   var errEmailLogin = RxnString();
   var errPasswordLogin = RxnString();
 
@@ -51,7 +51,7 @@ class AuthController extends GetxController {
   }
 
   // ================= LOGIN =================
-    Future<void> login() async {
+   Future<void> login() async {
     clearErrors();
     bool isValid = true;
     String email = emailLoginCtrl.text.trim();
@@ -90,55 +90,49 @@ class AuthController extends GetxController {
 
         if (userData == null) {
           await supabase.auth.signOut();
-          Get.snackbar("Error", "Data profil tidak ditemukan di database.", 
-              backgroundColor: Colors.red, colorText: Colors.white);
-          return;
+          throw Exception("Data tidak valid");
         }
 
         bool isAktif = userData['status_aktif'] ?? false;
+        String role = userData['role']?.toString().toLowerCase().trim() ?? '';
 
-        String role = userData['role']?.toString().toLowerCase() ?? '';
+        bool salahKamarOwner = isPemilik.value && role != 'owner';
+        bool salahKamarKasir = !isPemilik.value && role == 'owner';
+
+        if (salahKamarOwner || salahKamarKasir) {
+          await supabase.auth.signOut(); 
+          throw Exception("Akses ditolak karena salah kamar"); 
+        }
 
         if (!isAktif) {
           await supabase.auth.signOut(); 
-
-          Get.snackbar("Akses Ditolak", "Akun Anda telah dinonaktifkan oleh Pemilik Laundry.",
+          Get.snackbar("Akses Ditolak", "Akun Anda telah dinonaktifkan oleh Pemilik.", 
               backgroundColor: Colors.red, colorText: Colors.white, duration: const Duration(seconds: 4));
-          return;
-        }
-
-        bool loginAsPemilik = isPemilik.value;
-        if (loginAsPemilik && role != 'owner') {
-          await supabase.auth.signOut();
-          Get.snackbar("Salah Kamar", "Anda bukan Pemilik. Silakan login di tab PEGAWAI.",
-              backgroundColor: Colors.orange, colorText: Colors.white);
-          return;
-        } else if (!loginAsPemilik && role == 'owner') {
-          await supabase.auth.signOut();
-          Get.snackbar("Salah Kamar", "Anda adalah Pemilik. Silakan login di tab PEMILIK.",
-              backgroundColor: Colors.orange, colorText: Colors.white);
-          return;
+          return; 
         }
 
         final userC = Get.find<UserController>();
         await userC.getUserProfile();
 
         if (userC.outletId != null) {
+
+          Get.snackbar("Sukses", "Selamat datang kembali!", 
+              backgroundColor: Colors.green, colorText: Colors.white);
+
           Get.offAllNamed('/home');
         } else {
           await supabase.auth.signOut();
-          Get.snackbar("Error", "ID Outlet tidak ditemukan.");
+          throw Exception("Outlet tidak ditemukan");
         }
       } 
     } catch (e) {
-      errPasswordLogin.value = "Email atau Kata Sandi salah";
-      Get.snackbar("Login Gagal", "Periksa kembali email dan kata sandi Anda", 
+      errPasswordLogin.value = "Akses ditolak";
+      Get.snackbar("Login Gagal", "Email, Kata Sandi salah, atau Akun tidak ditemukan.", 
           backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
   }
-
   // ================= REGISTER =================
   Future<void> register() async {
     clearErrors(); 
@@ -244,8 +238,7 @@ class AuthController extends GetxController {
   // ================= RESET PASSWORD =================
   Future<void> kirimResetPassword() async {
     if (resetEmailCtrl.text.isEmpty) {
-      Get.snackbar("Error", "Masukkan email kamu dulu",
-        backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Error", "Masukkan email kamu dulu", backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
@@ -256,8 +249,7 @@ class AuthController extends GetxController {
       Get.snackbar("Berhasil", "Cek email kamu untuk reset password",
         backgroundColor: Colors.green, colorText: Colors.white, duration: const Duration(seconds: 5));
     } catch (e) {
-      Get.snackbar("Gagal", "Email tidak ditemukan atau error",
-        backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Gagal", "Email tidak ditemukan atau error", backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
       resetEmailCtrl.clear();
