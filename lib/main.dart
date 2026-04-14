@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; 
+
 import 'package:laundry_app/controllers/user_controller.dart';
 import 'package:laundry_app/controllers/layanan_controller.dart';
 import 'package:laundry_app/controllers/pelanggan_controller.dart';
@@ -10,9 +12,11 @@ import 'views/home_view.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await dotenv.load(fileName: ".env");
+
   await Supabase.initialize(
-    url: 'https://wrjktapmmczgblqtoujd.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indyamt0YXBtbWN6Z2JscXRvdWpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMDE4NTksImV4cCI6MjA5MDY3Nzg1OX0.vyyQ1NPLq8QExpvrwT00qMxPT6DazJa4BKlyt52KJMs',
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
   );
 
   Get.put(UserController(), permanent: true);

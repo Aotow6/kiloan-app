@@ -1,8 +1,9 @@
 # Miscellaneous
+.env
 *.class
 *.log
 *.pyc
-*.swp
+*.swp   
 .DS_Store
 .atom/
 .build/
