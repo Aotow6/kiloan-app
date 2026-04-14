@@ -100,13 +100,12 @@ class LayananController extends GetxController {
     String nama = namaLayananCtrl.text.trim().toLowerCase(); 
     String hargaRaw = hargaCtrl.text.replaceAll('.', ''); 
     String durasiRaw = durasiCtrl.text.trim();
-    
 
     if (kategori.isEmpty) {
       errKategori.value = "Kategori layanan wajib diisi";
       isValid = false;
     } else if (kategori.length < 3) {
-      errKategori.value = "Minimal 3 karakter";
+      errNama.value = "Minimal 3 karakter";
       isValid = false;
     }else if (hasEmoji(kategori)) { 
 

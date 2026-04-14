@@ -98,5 +98,18 @@ Future<void> lunasiPembayaran(int idTransaksi) async {
           backgroundColor: Colors.red, colorText: Colors.white);
     }
   }
-  
+  Future<Map<String, dynamic>?> fetchDetailPesanan(int transactionId) async {
+  try {
+    final data = await supabase
+        .from('transactions')
+        .select('*, customers(*)') 
+
+        .eq('id', transactionId)
+        .single();
+    return data;
+  } catch (e) {
+    print("Error fetch detail pesanan: $e");
+    return null;
+  }
+}
 }
