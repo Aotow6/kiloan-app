@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; 
+
 import 'package:get/get.dart';
 import '../controllers/pelanggan_controller.dart';
 
@@ -32,9 +34,8 @@ class TambahPelangganView extends StatelessWidget {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
         decoration: const BoxDecoration(color: Colors.white),
-        child: ElevatedButton(
-          onPressed: () {
-            // 🔥 LANGSUNG PANGGIL CONTROLLER
+        child: Obx(() => ElevatedButton(
+          onPressed: pelangganC.isLoading.value ? null : () {
             pelangganC.simpanPelanggan();
           },
           style: ElevatedButton.styleFrom(
@@ -44,7 +45,9 @@ class TambahPelangganView extends StatelessWidget {
               borderRadius: BorderRadius.circular(30),
             ),
           ),
-          child: const Text(
+          child: pelangganC.isLoading.value 
+            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : const Text(
             "SIMPAN",
             style: TextStyle(
               fontSize: 16,
@@ -52,7 +55,7 @@ class TambahPelangganView extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-        ),
+        )),
       ),
 
       body: Container(
@@ -90,18 +93,23 @@ class TambahPelangganView extends StatelessWidget {
 
                     const Text("Nama"),
                     const SizedBox(height: 8),
-                    TextField(
+                    Obx(() => TextField(
                       controller: pelangganC.namaCtrl,
                       decoration: InputDecoration(
                         hintText: "Nama Pelanggan",
+                        errorText: pelangganC.errNama.value, 
                         filled: true,
                         fillColor: Colors.grey.shade100,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.red),
+                        ),
                       ),
-                    ),
+                    )),
 
                     const SizedBox(height: 24),
 
@@ -111,9 +119,17 @@ class TambahPelangganView extends StatelessWidget {
                     Obx(() => TextField(
                           controller: pelangganC.phoneCtrl,
                           enabled: !pelangganC.isTanpaNomor.value,
-                          keyboardType: TextInputType.phone,
+                          keyboardType: TextInputType.number, 
+
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly, 
+
+                            LengthLimitingTextInputFormatter(13), 
+
+                          ],
                           decoration: InputDecoration(
-                            hintText: "812345678",
+                            hintText: "0812345678",
+                            errorText: pelangganC.errPhone.value, 
                             filled: true,
                             fillColor: pelangganC.isTanpaNomor.value
                                 ? Colors.grey.shade200
@@ -121,6 +137,10 @@ class TambahPelangganView extends StatelessWidget {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Colors.red),
                             ),
                           ),
                         )),

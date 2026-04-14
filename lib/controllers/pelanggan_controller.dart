@@ -17,6 +17,9 @@ class PelangganController extends GetxController {
   final phoneCtrl = TextEditingController();
   var isTanpaNomor = false.obs;
 
+  var errNama = RxnString();
+  var errPhone = RxnString();
+
   var sortType = 'Terbaru'.obs;
 
   void changeSort(String val) {
@@ -61,42 +64,90 @@ class PelangganController extends GetxController {
     }
   }
 
+  void clearErrors() {
+    errNama.value = null;
+    errPhone.value = null;
+  }
+
+  bool hasEmoji(String text) {
+    return RegExp(r'[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]', unicode: true).hasMatch(text);
+  }
+
   Future<void> simpanPelanggan() async {
-    if (namaCtrl.text.trim().isEmpty) {
-      Get.snackbar(
-        "Gagal",
-        "Nama wajib diisi",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return;
+    clearErrors();
+    bool isValid = true;
+
+    String nama = namaCtrl.text.trim();
+    String phone = phoneCtrl.text.trim();
+
+    if (nama.isEmpty) {
+      errNama.value = "Nama wajib diisi";
+      isValid = false;
+    } else if (nama.length < 3) {
+      errNama.value = "Nama minimal 3 karakter";
+      isValid = false;
+    } else if (hasEmoji(nama)) {
+      errNama.value = "Nama tidak boleh menggunakan emoji";
+      isValid = false;
     }
+
+    if (!isTanpaNomor.value) {
+      if (phone.isEmpty) {
+        errPhone.value = "Nomor HP wajib diisi atau centang 'Tanpa nomor'";
+        isValid = false;
+      } else if (!phone.startsWith('08')) {
+        errPhone.value = "Nomor HP harus diawali '08'";
+        isValid = false;
+      } else if (phone.length < 10 || phone.length > 13) {
+        errPhone.value = "Nomor HP tidak valid (10-13 digit)";
+        isValid = false;
+      }
+    }
+
+    if (!isValid) return;
 
     try {
       isLoading.value = true;
 
+      final cekDuplikat = await supabase
+          .from('customers')
+          .select('id')
+          .eq('outlet_id', userC.outletId)
+          .ilike('nama_pelanggan', nama) 
+          .maybeSingle();
+
+      if (cekDuplikat != null) {
+        errNama.value = "Pelanggan dengan nama ini sudah ada di toko Anda";
+        isLoading.value = false;
+        return;
+      }
+
       await supabase.from('customers').insert({
         'outlet_id': userC.outletId,
-        'nama_pelanggan': namaCtrl.text.trim(),
-        'no_wa': isTanpaNomor.value ? null : phoneCtrl.text.trim(),
+        'nama_pelanggan': nama,
+        'no_wa': isTanpaNomor.value ? null : phone,
         'total_kasbon': 0,
       });
 
       namaCtrl.clear();
       phoneCtrl.clear();
       isTanpaNomor.value = false;
+      clearErrors();
 
       await fetchPelanggan();
 
-      Get.back();
+      Get.back(); 
+
       Get.snackbar(
         "Sukses",
-        "Pelanggan berhasil ditambahkan",
+        "Pelanggan $nama berhasil ditambahkan!",
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
+
     } catch (e) {
-      Get.snackbar("Error", "Gagal simpan: $e");
+      Get.snackbar("Error", "Gagal menyimpan pelanggan server sedang sibuk.", 
+          backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
@@ -128,7 +179,15 @@ class PelangganController extends GetxController {
     isTanpaNomor.value = val ?? false;
     if (isTanpaNomor.value) {
       phoneCtrl.clear();
+      errPhone.value = null; 
     }
+  }
+
+  void prepareNewForm() {
+    namaCtrl.clear();
+    phoneCtrl.clear();
+    isTanpaNomor.value = false;
+    clearErrors();
   }
 
   @override

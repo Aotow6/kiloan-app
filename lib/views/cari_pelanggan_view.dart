@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:laundry_app/views/pilih_layanan_view.dart';
 import '../controllers/pelanggan_controller.dart';
+import 'tambah_pelanggan_view.dart'; 
 
 class CariPelangganView extends StatelessWidget {
   CariPelangganView({super.key});
@@ -42,6 +43,17 @@ class CariPelangganView extends StatelessWidget {
         centerTitle: true,
         actions: const [SizedBox(width: 48)],
       ),
+
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFF2196F3),
+        onPressed: () {
+          pelC.prepareNewForm(); 
+
+          Get.to(() => TambahPelangganView());
+        },
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
+      ),
+
       body: Container(
         margin: const EdgeInsets.only(top: 10),
         decoration: const BoxDecoration(
@@ -235,7 +247,7 @@ class CariPelangganView extends StatelessWidget {
         OutlinedButton(
           onPressed: () => Get.to(() => PilihLayananView(
                 namaCustomer: nama,
-                idCustomer: id, // ✅ FIX: pakai ID database
+                idCustomer: id, 
                 noHp: noHp,
               )),
           style: OutlinedButton.styleFrom(

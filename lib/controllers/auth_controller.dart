@@ -126,7 +126,8 @@ class AuthController extends GetxController {
         }
       } 
     } catch (e) {
-      errPasswordLogin.value = "Akses ditolak";
+      errPasswordLogin.value = "";
+      errEmailLogin.value = "";
       Get.snackbar("Login Gagal", "Email, Kata Sandi salah, atau Akun tidak ditemukan.", 
           backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
