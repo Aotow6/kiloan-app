@@ -285,7 +285,7 @@ class DetailPesananView extends StatelessWidget {
                               IconButton(
                                 icon: const Icon(Icons.print_outlined, color: Color(0xFF2196F3), size: 28), 
                                 onPressed: () {
-                                  Get.snackbar("Info", "Fitur cetak nota belum tersedia.", backgroundColor: Colors.orange, colorText: Colors.white);
+                                  detailC.cetakNotaPDF(h);
                                 }
                               ),
                             ]
