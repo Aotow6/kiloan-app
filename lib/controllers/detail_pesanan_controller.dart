@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart'; 
 import 'transaksi_controller.dart'; 
+import 'pesanan_controller.dart'; 
+
 import '../views/pilih_layanan_view.dart';
 
 class DetailPesananController extends GetxController {
@@ -234,6 +236,9 @@ class DetailPesananController extends GetxController {
       await supabase.from('customers').update({'total_kasbon': currentBon + nominal}).eq('id', custId);
 
       isDataChanged = true;
+
+      Get.close(2);
+
       await fetchDetailItems(trxId, catatanEditCtrl.text); 
 
       Get.snackbar("Sukses", "Masuk ke catatan Kasbon Pelanggan", backgroundColor: Colors.orange, colorText: Colors.white);
@@ -290,6 +295,13 @@ class DetailPesananController extends GetxController {
     ongkirCtrl.dispose();
     alamatCtrl.dispose();
     catatanEditCtrl.dispose();
+
+    if (isDataChanged) {
+      if (Get.isRegistered<PesananController>()) {
+        Get.find<PesananController>().fetchPesanan();
+      }
+    }
+
     super.onClose();
   }
 }

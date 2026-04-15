@@ -107,11 +107,10 @@ class DetailPesananView extends StatelessWidget {
                                     ),
                                   ),
                                   const SizedBox(height: 12),
-                                  SizedBox(
+                                    SizedBox(
                                     width: double.infinity,
                                     child: OutlinedButton(
                                       onPressed: () {
-                                        Get.back(); 
                                         Get.defaultDialog(
                                           title: "Jadikan Bon?",
                                           middleText: "Tagihan Rp ${_formatRupiah(h['total_tagihan'] ?? 0)} akan masuk ke hutang pelanggan.",
