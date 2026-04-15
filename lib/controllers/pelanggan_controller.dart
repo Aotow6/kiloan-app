@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'user_controller.dart';
 import '../views/detail_pelanggan_view.dart';
@@ -240,5 +241,92 @@ class PelangganController extends GetxController {
     namaCtrl.dispose();
     phoneCtrl.dispose();
     super.onClose();
+  }
+    var detailKasbon = 0.obs;
+  var detailPiutang = 0.obs;
+  var detailTotalNominal = 0.obs;
+  var detailTotalTransaksi = 0.obs;
+  var detailTotalBatal = 0.obs;
+  var detailTotalKg = 0.0.obs;
+  var detailTotalSatuan = 0.obs;
+  var detailTransaksiPertama = "-".obs;
+  var detailTransaksiTerakhir = "-".obs;
+  var isDetailLoading = false.obs;
+
+  Future<void> fetchDetailPelanggan(int customerId) async {
+    try {
+      isDetailLoading.value = true;
+
+      final cust = await supabase.from('customers').select('total_kasbon').eq('id', customerId).single();
+      detailKasbon.value = cust['total_kasbon'] ?? 0;
+
+      final trxs = await supabase.from('transactions')
+          .select('*, transaction_details(*, services(satuan))')
+          .eq('customer_id', customerId);
+
+      int piutang = 0;
+      int nominal = 0;
+      int batal = 0;
+      double kg = 0.0;
+      int satuan = 0;
+      DateTime? firstDate;
+      DateTime? lastDate;
+
+      for (var trx in trxs) {
+        String statusPesanan = trx['status_pesanan'].toString().toLowerCase();
+        String statusBayar = trx['status_pembayaran'].toString().toLowerCase();
+        int tagihan = trx['total_tagihan'] ?? 0;
+
+        if (statusPesanan == 'batal') {
+          batal++;
+        } else {
+
+          nominal += tagihan;
+
+          if (statusBayar == 'belum lunas') {
+            piutang += tagihan;
+          }
+
+          if (trx['transaction_details'] != null) {
+            for (var det in trx['transaction_details']) {
+              double qty = double.tryParse(det['kuantitas'].toString()) ?? 0.0;
+              String sat = det['services']?['satuan']?.toString().toLowerCase() ?? '';
+
+              if (sat == 'kg') {
+                kg += qty;
+              } else {
+                satuan += qty.toInt();
+              }
+            }
+          }
+
+          if (trx['waktu_masuk'] != null) {
+            DateTime tgl = DateTime.parse(trx['waktu_masuk']);
+            if (firstDate == null || tgl.isBefore(firstDate)) firstDate = tgl;
+            if (lastDate == null || tgl.isAfter(lastDate)) lastDate = tgl;
+          }
+        }
+      }
+
+      detailPiutang.value = piutang;
+      detailTotalNominal.value = nominal;
+      detailTotalTransaksi.value = trxs.length;
+      detailTotalBatal.value = batal;
+      detailTotalKg.value = kg;
+      detailTotalSatuan.value = satuan;
+
+      final formatter = DateFormat('dd/MM/yyyy HH:mm');
+      detailTransaksiPertama.value = firstDate != null ? formatter.format(firstDate) : "-";
+      detailTransaksiTerakhir.value = lastDate != null ? formatter.format(lastDate) : "-";
+
+    } catch (e) {
+      print("Error fetch detail pelanggan: $e");
+    } finally {
+      isDetailLoading.value = false;
+    }
+  }
+
+  String formatRupiahLokal(int amount) {
+    return amount.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
   }
 }

@@ -14,6 +14,11 @@ class DetailPelangganView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      pelC.fetchDetailPelanggan(id);
+    });
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -25,7 +30,6 @@ class DetailPelangganView extends StatelessWidget {
         ),
         title: Text(nama, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
         actions: [
-
           IconButton(
             onPressed: () => pelC.setEditMode(nama, phone, id), 
             icon: const Icon(Icons.settings_outlined, color: Colors.black54)
@@ -36,78 +40,87 @@ class DetailPelangganView extends StatelessWidget {
         children: [
           SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _buildSectionCard(
-                  title: "Profil & Kontak",
-                  titleColor: Colors.orange.shade700,
-                  child: Column(
-                    children: [
-                      _buildInfoRow(Icons.phone_android, phone),
-                      const SizedBox(height: 12),
+            child: Obx(() {
+              if (pelC.isDetailLoading.value) {
+                return const Padding(
+                  padding: EdgeInsets.only(top: 50.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
 
-                      _buildInfoRow(Icons.person, nama),
-                    ],
+              return Column(
+                children: [
+                  _buildSectionCard(
+                    title: "Profil & Kontak",
+                    titleColor: Colors.orange.shade700,
+                    child: Column(
+                      children: [
+                        _buildInfoRow(Icons.phone_android, phone),
+                        const SizedBox(height: 12),
+                        _buildInfoRow(Icons.person, nama),
+                      ],
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green),
+                        const SizedBox(width: 15),
+                        Icon(Icons.phone, color: Colors.red.shade400),
+                      ],
+                    ),
                   ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green),
-                      const SizedBox(width: 15),
-                      Icon(Icons.phone, color: Colors.red.shade400),
-                    ],
-                  ),
-                ),
 
-                _buildSectionCard(
-                  title: "Data Keuangan",
-                  titleColor: Colors.orange.shade700,
-                  child: Row(
-                    children: [
-                      _buildFinancialItem("Kasbon", "0"),
-                      const VerticalDivider(thickness: 1, color: Colors.grey),
-                      _buildFinancialItem("Piutang", "0"),
-                    ],
-                  ),
-                ),
+                  _buildSectionCard(
+                    title: "Data Keuangan",
+                    titleColor: Colors.orange.shade700,
+                    child: Row(
+                      children: [
 
-                _buildSectionCard(
-                  title: "Data Transaksi",
-                  titleColor: Colors.orange.shade700,
-                  child: Column(
-                    children: [
-                      _buildTransactionRow("Total Nominal", "0", isBold: true),
-                      _buildTransactionRow("Total Transaksi", "0 Transaksi", valueColor: Colors.blue),
-                      _buildTransactionRow("Total Transaksi Produk", "0 Transaksi", valueColor: Colors.blue),
-                      _buildTransactionRow("Total Dibatalkan", "0 Transaksi", valueColor: Colors.blue),
-                      _buildTransactionRow("Total Rincian", "0.0 Kg / 0 Satuan", valueColor: Colors.blue),
-                      const Divider(),
-                      _buildTransactionRow("Transaksi Pertama", "-"),
-                      _buildTransactionRow("Transaksi Terakhir", "-"),
-                      const SizedBox(height: 10),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text("Lihat Semua", style: TextStyle(fontWeight: FontWeight.bold)),
-                          Icon(Icons.chevron_right),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
+                        _buildFinancialItem("Kasbon", "Rp ${pelC.formatRupiahLokal(pelC.detailKasbon.value)}"),
+                        const VerticalDivider(thickness: 1, color: Colors.grey),
 
-                Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 100),
-                  child: TextButton.icon(
-                    onPressed: () => pelC.hapusPelanggan(id, nama, dariDetail: true),
-                    icon: const Icon(Icons.delete, color: Colors.red), 
-                    label: const Text("Hapus Pelanggan", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                    style: TextButton.styleFrom(backgroundColor: Colors.red.withOpacity(0.1), padding: const EdgeInsets.symmetric(vertical: 14)),
+                        _buildFinancialItem("Piutang", "Rp ${pelC.formatRupiahLokal(pelC.detailPiutang.value)}"),
+                      ],
+                    ),
                   ),
-                )
-              ],
-            ),
+
+                  _buildSectionCard(
+                    title: "Data Transaksi",
+                    titleColor: Colors.orange.shade700,
+                    child: Column(
+                      children: [
+                        _buildTransactionRow("Total Nominal", "Rp ${pelC.formatRupiahLokal(pelC.detailTotalNominal.value)}", isBold: true),
+                        _buildTransactionRow("Total Transaksi", "${pelC.detailTotalTransaksi.value} Transaksi", valueColor: Colors.blue),
+                        _buildTransactionRow("Total Dibatalkan", "${pelC.detailTotalBatal.value} Transaksi", valueColor: Colors.red),
+                        _buildTransactionRow("Total Rincian", "${pelC.detailTotalKg.value.toStringAsFixed(1)} Kg / ${pelC.detailTotalSatuan.value} Satuan", valueColor: Colors.blue),
+                        const Divider(),
+                        _buildTransactionRow("Transaksi Pertama", pelC.detailTransaksiPertama.value),
+                        _buildTransactionRow("Transaksi Terakhir", pelC.detailTransaksiTerakhir.value),
+                        const SizedBox(height: 10),
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Text("Lihat Semua", style: TextStyle(fontWeight: FontWeight.bold)),
+                            // Icon(Icons.chevron_right),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.only(bottom: 100),
+                    child: TextButton.icon(
+                      onPressed: () => pelC.hapusPelanggan(id, nama, dariDetail: true),
+                      icon: const Icon(Icons.delete, color: Colors.red), 
+                      label: const Text("Hapus Pelanggan", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                      style: TextButton.styleFrom(backgroundColor: Colors.red.withOpacity(0.1), padding: const EdgeInsets.symmetric(vertical: 14)),
+                    ),
+                  )
+                ],
+              );
+            }),
           ),
 
           Align(
@@ -117,7 +130,9 @@ class DetailPelangganView extends StatelessWidget {
               color: Colors.white,
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange.shade600,
                   padding: const EdgeInsets.symmetric(vertical: 16),
