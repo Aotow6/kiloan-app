@@ -166,10 +166,18 @@ class PesananView extends StatelessWidget {
       }
     }
 
+    String statusPesanan = (data['status_pesanan'] ?? "").toString().toLowerCase();
     String statusBayar = data['status_pembayaran'] ?? "Belum Lunas";
     Color badgeColor = Colors.red.shade700;
-    if (statusBayar == 'Lunas') badgeColor = Colors.green;
-    if (statusBayar == 'Bon') badgeColor = Colors.orange;
+
+    if (statusPesanan == 'batal') {
+      statusBayar = 'Batal';
+      badgeColor = const Color.fromARGB(255, 255, 0, 0);
+    } else {
+
+      if (statusBayar == 'Lunas') badgeColor = Colors.green;
+      if (statusBayar == 'Bon') badgeColor = Colors.orange;
+    }
 
     return GestureDetector(
       onTap: () async {

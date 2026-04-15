@@ -115,7 +115,7 @@ Future<void> batalkanPesanan(int transactionId, bool isLunas, int totalDibayar) 
     try {
 
       await supabase.from('transactions').update({
-        'status_pesanan': 'Batal',
+        'status_pesanan': 'batal',
       }).eq('id', transactionId);
 
       if (isLunas && totalDibayar > 0) {

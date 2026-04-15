@@ -164,7 +164,7 @@ class DetailPesananView extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         if(h['status_pesanan'].toString().toLowerCase() == 'proses') {
-                           detailC.updateStatus(h['id'], 'Selesai');
+                           detailC.updateStatus(h['id'], 'selesai');
                         } else if (h['status_pesanan'].toString().toLowerCase() == 'selesai') {
                            detailC.updateStatus(h['id'], 'diambil');
                         }
