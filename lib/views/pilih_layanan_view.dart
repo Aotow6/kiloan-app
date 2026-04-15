@@ -22,7 +22,6 @@ class PilihLayananView extends StatefulWidget {
 }
 
 class _PilihLayananViewState extends State<PilihLayananView> {
-
   late final LayananController layC;
   late final TransaksiController trxC;
 
@@ -97,22 +96,45 @@ class _PilihLayananViewState extends State<PilihLayananView> {
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Get.to(() => KonfirmasiPesananView(
-                        namaCustomer: widget.namaCustomer,
-                        idCustomer: widget.idCustomer.toString(),
-                        phoneCustomer: widget.noHp,
-                      )),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange.shade500,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                  ),
-                  child: const Text(
-                    "Buat Transaksi",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                  ),
-                ),
+
+                child: trxC.isEditMode.value
+                  ? ElevatedButton(
+
+                      onPressed: trxC.isLoading.value ? null : () => trxC.buatTransaksi(
+                        widget.idCustomer.toString(),
+                        widget.namaCustomer,
+                        widget.noHp
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade600, 
+
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      ),
+                      child: trxC.isLoading.value 
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
+                        : const Text(
+                            "Simpan Perubahan",
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                          ),
+                    )
+                  : ElevatedButton(
+
+                      onPressed: () => Get.to(() => KonfirmasiPesananView(
+                            namaCustomer: widget.namaCustomer,
+                            idCustomer: widget.idCustomer.toString(),
+                            phoneCustomer: widget.noHp,
+                          )),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange.shade500,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      ),
+                      child: const Text(
+                        "Buat Transaksi",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                      ),
+                    ),
               ),
             ],
           ),
@@ -125,7 +147,6 @@ class _PilihLayananViewState extends State<PilihLayananView> {
             padding: const EdgeInsets.all(20),
             child: TextField(
               onChanged: (val) => layC.searchQuery.value = val, 
-
               decoration: InputDecoration(
                 hintText: "Pencarian",
                 prefixIcon: const Icon(Icons.search),
@@ -144,9 +165,7 @@ class _PilihLayananViewState extends State<PilihLayananView> {
             ),
           ),
           Expanded(
-
             child: Obx(() {
-
               var groupedServices = layC.groupedServices;
 
               if (layC.isLoading.value) {

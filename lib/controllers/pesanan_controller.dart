@@ -10,6 +10,7 @@ class PesananController extends GetxController {
   var selectedTab = 0.obs;
   var listPesanan = <Map<String, dynamic>>[].obs;
   var isLoading = false.obs;
+  var searchQuery = ''.obs;
 
   final List<String> tabs = [
     "Diproses",
@@ -32,7 +33,7 @@ class PesananController extends GetxController {
   Future<void> fetchPesanan() async {
     try {
       isLoading.value = true;
-      
+
       String statusFilter = tabs[selectedTab.value].toLowerCase();
       if (statusFilter == "diproses") statusFilter = "proses";
 
@@ -57,11 +58,11 @@ class PesananController extends GetxController {
         .from('transactions')
         .update({'status_pesanan': statusBaru.toLowerCase()})
         .eq('id', id);
-    
+
     fetchPesanan(); 
 
     Get.back(); 
-    
+
     Get.snackbar(
       "Berhasil", 
       "Status pesanan telah diubah menjadi $statusBaru",
@@ -75,16 +76,14 @@ class PesananController extends GetxController {
 
 Future<void> lunasiPembayaran(int idTransaksi) async {
     try {
-      // Update data di Supabase
+
       await supabase
           .from('transactions')
           .update({'status_pembayaran': 'Lunas'})
           .eq('id', idTransaksi);
 
-      // Refresh data di halaman Pesanan biar labelnya langsung berubah hijau
       await fetchPesanan(); 
 
-      // Tutup halaman detail dan kasih notif sukses
       Get.back();
       Get.snackbar(
         "Lunas!", 
@@ -112,4 +111,35 @@ Future<void> lunasiPembayaran(int idTransaksi) async {
     return null;
   }
 }
+Future<void> batalkanPesanan(int transactionId, bool isLunas, int totalDibayar) async {
+    try {
+
+      await supabase.from('transactions').update({
+        'status_pesanan': 'Batal',
+      }).eq('id', transactionId);
+
+      if (isLunas && totalDibayar > 0) {
+        final userC = Get.find<UserController>();
+        await supabase.from('cashflows').insert({
+          'outlet_id': userC.outletId,
+          'user_id': userC.currentUser.value?.id,
+          'transaction_id': transactionId,
+          'tipe_arus': 'Pengeluaran',
+          'nominal': totalDibayar, 
+
+          'metode_bayar': 'Tunai', 
+
+          'keterangan': 'Refund Pembatalan Pesanan',
+        });
+      }
+
+      Get.back(); 
+
+      fetchPesanan(); 
+
+      Get.snackbar("Dibatalkan", "Pesanan berhasil dibatalkan", backgroundColor: Colors.red, colorText: Colors.white);
+    } catch (e) {
+      Get.snackbar("Error", "Gagal membatalkan pesanan: $e");
+    }
+  }
 }

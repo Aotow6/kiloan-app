@@ -6,6 +6,7 @@ import 'user_controller.dart';
 import 'layanan_controller.dart';
 import 'pesanan_controller.dart'; 
 import '../views/detail_pesanan_view.dart';
+import '../views/pesanan_view.dart';
 
 class CurrencyFormat extends TextInputFormatter {
   @override
@@ -33,6 +34,9 @@ class TransaksiController extends GetxController {
   var isLoading = false.obs;
 
   var pelangganDipilih = {}.obs;
+
+  var isEditMode = false.obs;
+  var idTransaksiEdit = 0.obs;
 
   final alamatCtrl = TextEditingController();
   final catatanCtrl = TextEditingController();
@@ -151,7 +155,6 @@ class TransaksiController extends GetxController {
   }
 
   Future<void> buatTransaksi(String id, String nama, String phone) async {
-
     if (cart.isEmpty) {
       Get.snackbar("Error", "Pesanan tidak boleh kosong!", backgroundColor: Colors.red, colorText: Colors.white);
       return;
@@ -168,6 +171,10 @@ class TransaksiController extends GetxController {
       }
       if (hasEmoji(alamat)) {
         Get.snackbar("Error", "Alamat tidak boleh mengandung emoji!", backgroundColor: Colors.red, colorText: Colors.white);
+        return;
+      }
+      if (alamat.length < 5) {
+        Get.snackbar("Error", "Alamat terlalu pendek! Maksimal 255 karakter.", backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }
       if (!isPenjemputan.value && !isPengantaran.value) {
@@ -196,82 +203,121 @@ class TransaksiController extends GetxController {
 
     try {
       isLoading.value = true;
-      String nota = "NOT-${DateTime.now().millisecondsSinceEpoch}";
 
-      final trxRes = await supabase.from('transactions').insert({
-        'outlet_id': userC.outletId,
-        'customer_id': int.parse(id),
-        'user_id': userC.currentUser.value?.id,
-        'nomor_nota': nota,
-        'total_tagihan': totalTagihan,
-        'total_dibayar': 0,
-        'status_pesanan': 'proses',
-        'status_pembayaran': 'Belum Lunas',
-        'tipe_logistik': logistikType,
-        'delivery_fee': deliveryFee.value,
-        'waktu_masuk': DateTime.now().toIso8601String(),
-        'estimasi_selesai': DateTime.now().add(const Duration(days: 2)).toIso8601String(),
-        'alamat_layanan': isAntarJemput.value ? alamatCtrl.text : null,
-        'catatan': catatan.isNotEmpty ? catatan : null,
-      }).select().single();
+            if (isEditMode.value) {
+        int trkId = idTransaksiEdit.value;
 
-      final List<Map<String, dynamic>> details = cart.map((item) => {
-            'transaction_id': trxRes['id'],
-            'service_id': item['service_id'],
-            'kuantitas': item['kuantitas'],
-            'subtotal_harga': item['subtotal_harga'],
-          }).toList();
+        await supabase.from('transactions').update({
+          'total_tagihan': totalTagihan,
+          'tipe_logistik': logistikType,
+          'delivery_fee': deliveryFee.value,
+          'alamat_layanan': isAntarJemput.value ? alamatCtrl.text : null,
+          'catatan': catatan.isNotEmpty ? catatan : null,
+        }).eq('id', trkId);
 
-      await supabase.from('transaction_details').insert(details);
+        await supabase.from('transaction_details').delete().eq('transaction_id', trkId);
 
-      Get.defaultDialog(
-        title: "Sukses",
-        titleStyle: const TextStyle(fontWeight: FontWeight.bold),
-        middleText: "Transaksi $nota berhasil dibuat!",
-        barrierDismissible: false,
-        actions: [
-          OutlinedButton(
-            onPressed: () => Get.offAllNamed('/home'),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Colors.blue),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        final List<Map<String, dynamic>> details = cart.map((item) => {
+              'transaction_id': trkId,
+              'service_id': item['service_id'],
+              'kuantitas': item['kuantitas'],
+              'subtotal_harga': item['subtotal_harga'],
+            }).toList();
+        await supabase.from('transaction_details').insert(details);
+
+        isEditMode.value = false;
+        idTransaksiEdit.value = 0;
+
+        Get.back(result: true); 
+
+        Get.snackbar("Sukses", "Transaksi berhasil diperbarui!", backgroundColor: Colors.green, colorText: Colors.white);
+      }
+
+      else {
+        String nota = "NOT-${DateTime.now().millisecondsSinceEpoch}";
+
+        final trxRes = await supabase.from('transactions').insert({
+          'outlet_id': userC.outletId,
+          'customer_id': int.parse(id),
+          'user_id': userC.currentUser.value?.id,
+          'nomor_nota': nota,
+          'total_tagihan': totalTagihan,
+          'total_dibayar': 0,
+          'status_pesanan': 'proses',
+          'status_pembayaran': 'Belum Lunas',
+          'tipe_logistik': logistikType,
+          'delivery_fee': deliveryFee.value,
+          'waktu_masuk': DateTime.now().toIso8601String(),
+          'estimasi_selesai': DateTime.now().add(const Duration(days: 2)).toIso8601String(),
+          'alamat_layanan': isAntarJemput.value ? alamatCtrl.text : null,
+          'catatan': catatan.isNotEmpty ? catatan : null,
+        }).select().single();
+
+        final List<Map<String, dynamic>> details = cart.map((item) => {
+              'transaction_id': trxRes['id'],
+              'service_id': item['service_id'],
+              'kuantitas': item['kuantitas'],
+              'subtotal_harga': item['subtotal_harga'],
+            }).toList();
+
+        await supabase.from('transaction_details').insert(details);
+
+        Get.defaultDialog(
+          title: "Sukses",
+          titleStyle: const TextStyle(fontWeight: FontWeight.bold),
+          middleText: "Transaksi $nota berhasil dibuat!",
+          barrierDismissible: false,
+          actions: [
+            OutlinedButton(
+              onPressed: () => Get.offAllNamed('/home'),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.blue),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              ),
+              child: const Text("Beranda", style: TextStyle(color: Colors.blue)),
             ),
-            child: const Text("Beranda", style: TextStyle(color: Colors.blue)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Get.showOverlay(
-                asyncFunction: () async {
-                  try {
+            ElevatedButton(
+              onPressed: () async {
 
-                    final PesananController pesananC = Get.put(PesananController());
-                    final detailData = await pesananC.fetchDetailPesanan(trxRes['id']);
-                    if (detailData != null) {
-                      Get.offAll(() => DetailPesananView(data: detailData));
-                    } else {
-                      Get.snackbar("Waduh", "Gagal ngambil detail pesanan nih");
+                Get.back(); 
+
+                Get.showOverlay(
+                  asyncFunction: () async {
+                    try {
+                      final PesananController pesananC = Get.put(PesananController());
+                      final detailData = await pesananC.fetchDetailPesanan(trxRes['id']);
+                      if (detailData != null) {
+
+                        Get.offAll(() => PesananView());
+                        await Future.delayed(const Duration(milliseconds: 300));
+                        Get.to(() => DetailPesananView(data: detailData));
+
+                      } else {
+                        Get.snackbar("Waduh", "Gagal ngambil detail pesanan nih");
+                      }
+                    } catch (e) {
+                      Get.snackbar("Error", e.toString());
                     }
-                  } catch (e) {
-                    Get.snackbar("Error", e.toString());
-                  }
-                },
-                loadingWidget: const Center(child: CircularProgressIndicator()),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  },
+                  loadingWidget: const Center(child: CircularProgressIndicator()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              ),
+              child: const Text("Lihat Detail", style: TextStyle(color: Colors.white)),
             ),
-            child: const Text("Lihat Detail", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      );
+          ],
+        );
+      }
 
       cart.clear();
       catatanCtrl.clear();
       alamatCtrl.clear();
       deliveryFee.value = 0;
       isAntarJemput.value = false;
+
     } catch (e) {
       Get.snackbar("Gagal", "Terjadi kesalahan: $e", backgroundColor: Colors.red, colorText: Colors.white);
     } finally {

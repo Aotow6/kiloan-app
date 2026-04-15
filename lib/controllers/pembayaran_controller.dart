@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'user_controller.dart';
 
+import 'detail_pesanan_controller.dart'; 
+
 class PembayaranController extends GetxController {
   final supabase = Supabase.instance.client;
   final userC = Get.find<UserController>();
@@ -15,6 +17,8 @@ class PembayaranController extends GetxController {
   var uangDiterima = 0.obs;
   final uangDiterimaCtrl = TextEditingController();
   var selectedMethod = "".obs;
+
+  var isLoading = false.obs; 
 
   int get kembalian {
     int sisa = uangDiterima.value - totalTagihan.value;
@@ -43,6 +47,7 @@ class PembayaranController extends GetxController {
 
   Future<void> prosesBayar() async {
     try {
+      isLoading.value = true;
       String metode = selectedTab.value == 0 ? "Tunai" : selectedMethod.value;
 
       await supabase.from('transactions').update({
@@ -60,38 +65,66 @@ class PembayaranController extends GetxController {
         'keterangan': 'Pelunasan Nota',
       });
 
-      Get.offAllNamed('/home');
-      Get.snackbar(
-        "Sukses",
-        "Pembayaran Lunas via $metode",
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      Get.back(result: true); 
+      Get.snackbar("Sukses", "Pembayaran Berhasil", backgroundColor: Colors.green, colorText: Colors.white);
+
+      if(Get.isRegistered<DetailPesananController>()) {
+        final detailC = Get.find<DetailPesananController>();
+
+        await detailC.fetchDetailItems(idTransaksi.value, "");
+        final latestHeader = await supabase.from('transactions').select('*, customers(*)').eq('id', idTransaksi.value).single();
+        detailC.headerData.value = latestHeader;
+        detailC.isDataChanged = true;
+      }
+
     } catch (e) {
-      Get.snackbar("Error", "Gagal memproses pembayaran: $e");
+      Get.snackbar("Error", e.toString(), backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isLoading.value = false;
     }
   }
 
   Future<void> jadikanBon() async {
     try {
+      isLoading.value = true;
+
+      final customerData = await supabase
+          .from('customers')
+          .select('total_kasbon')
+          .eq('id', idCustomer.value)
+          .single();
+
+      int kasbonLama = customerData['total_kasbon'] ?? 0;
+      int kasbonBaru = kasbonLama + totalTagihan.value;
+
       await supabase.from('transactions').update({
-        'status_pembayaran': 'Belum Lunas',
+        'status_pembayaran': 'Bon',
       }).eq('id', idTransaksi.value);
 
-      await supabase.rpc('increment_customer_kasbon', params: {
-        'row_id': idCustomer.value,
-        'amount': totalTagihan.value,
-      });
+      await supabase.from('customers').update({
+        'total_kasbon': kasbonBaru,
+      }).eq('id', idCustomer.value);
 
-      Get.offAllNamed('/home');
+      Get.back(result: true); 
       Get.snackbar(
-        "Info",
-        "Transaksi dicatat sebagai BON",
+        "Berhasil",
+        "Transaksi dicatat sebagai BON. Kasbon pelanggan bertambah.",
         backgroundColor: Colors.orange,
         colorText: Colors.white,
       );
+
+      if(Get.isRegistered<DetailPesananController>()) {
+        final detailC = Get.find<DetailPesananController>();
+        await detailC.fetchDetailItems(idTransaksi.value, "");
+        final latestHeader = await supabase.from('transactions').select('*, customers(*)').eq('id', idTransaksi.value).single();
+        detailC.headerData.value = latestHeader;
+        detailC.isDataChanged = true;
+      }
+
     } catch (e) {
-      Get.snackbar("Error", "Gagal mencatat BON: $e");
+      Get.snackbar("Error", "Gagal mencatat BON: $e", backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isLoading.value = false;
     }
   }
 

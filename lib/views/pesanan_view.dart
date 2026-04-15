@@ -9,8 +9,6 @@ import 'widgets/navbar.dart';
 class PesananView extends StatelessWidget {
   PesananView({super.key});
 
-  // Gunakan Get.find jika sudah di-put di main/binding, 
-  // tapi kalau ragu, Get.put di sini juga aman.
   final PesananController pesananC = Get.put(PesananController());
   final HomeController homeC = Get.find<HomeController>();
 
@@ -28,16 +26,20 @@ class PesananView extends StatelessWidget {
           children: [
             _buildHeader(),
             _buildTabBar(),
-            Expanded(
-              // Obx dipasang di sini untuk memantau perubahan list
-              child: Obx(() {
-                // PAKSA GETX UNTUK MEMBACA DATA
-                final items = pesananC.listPesanan.toList();
-                final isWaiting = pesananC.isLoading.value;
 
+            Expanded(
+              child: Obx(() {
+                final isWaiting = pesananC.isLoading.value;
                 if (isWaiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
+
+                final query = pesananC.searchQuery.value.toLowerCase();
+                final items = pesananC.listPesanan.where((item) {
+                  final nama = (item['customers']?['nama_pelanggan'] ?? "").toLowerCase();
+                  final nota = (item['nomor_nota'] ?? "").toLowerCase();
+                  return nama.contains(query) || nota.contains(query);
+                }).toList();
 
                 if (items.isEmpty) {
                   return _emptyState();
@@ -46,7 +48,7 @@ class PesananView extends StatelessWidget {
                 return RefreshIndicator(
                   onRefresh: () => pesananC.fetchPesanan(),
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                     itemCount: items.length,
                     itemBuilder: (context, index) {
                       return _orderCard(items[index]);
@@ -75,14 +77,37 @@ class PesananView extends StatelessWidget {
                 children: [
                   const Icon(Icons.water_drop, color: Color(0xFF2196F3), size: 28),
                   const SizedBox(width: 8),
-                  const Text("kiloan", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
+                  const Text("kiloan",
+                      style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF102A43))),
                 ],
               ),
               const Icon(Icons.history, color: Color(0xFF2196F3), size: 28),
             ],
           ),
+
           const SizedBox(height: 15),
-          const Text("Status Orderan", style: TextStyle(fontSize: 18, color: Color(0xFF102A43), fontWeight: FontWeight.bold)),
+
+          TextField(
+            onChanged: (value) => pesananC.searchQuery.value = value,
+            decoration: InputDecoration(
+              hintText: "Cari nama atau no. nota...",
+              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+              filled: true,
+              fillColor: const Color(0xFFF8F9FA),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -93,7 +118,6 @@ class PesananView extends StatelessWidget {
       color: Colors.white,
       height: 50,
       child: Obx(() {
-        // Pemancing tab
         final currentTab = pesananC.selectedTab.value;
         return ListView.builder(
           scrollDirection: Axis.horizontal,
@@ -105,14 +129,21 @@ class PesananView extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 decoration: BoxDecoration(
-                  border: Border(bottom: BorderSide(color: isActive ? const Color(0xFF2196F3) : Colors.transparent, width: 3)),
+                  border: Border(
+                      bottom: BorderSide(
+                          color: isActive
+                              ? const Color(0xFF2196F3)
+                              : Colors.transparent,
+                          width: 3)),
                 ),
                 child: Center(
                   child: Text(
                     pesananC.tabs[index],
                     style: TextStyle(
                       fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                      color: isActive ? const Color(0xFF2196F3) : Colors.grey.shade600,
+                      color: isActive
+                          ? const Color(0xFF2196F3)
+                          : Colors.grey.shade600,
                     ),
                   ),
                 ),
@@ -128,48 +159,91 @@ class PesananView extends StatelessWidget {
     String tgl = "-";
     if (data['waktu_masuk'] != null) {
       try {
-        tgl = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(data['waktu_masuk']));
-      } catch (e) { tgl = "-"; }
+        tgl = DateFormat('dd/MM/yyyy HH:mm')
+            .format(DateTime.parse(data['waktu_masuk']));
+      } catch (e) {
+        tgl = "-";
+      }
     }
 
+    String statusBayar = data['status_pembayaran'] ?? "Belum Lunas";
+    Color badgeColor = Colors.red.shade700;
+    if (statusBayar == 'Lunas') badgeColor = Colors.green;
+    if (statusBayar == 'Bon') badgeColor = Colors.orange;
+
     return GestureDetector(
-      onTap: () => Get.to(() => DetailPesananView(data: data)),
+      onTap: () async {
+        final bool? result = await Get.to(() => DetailPesananView(data: data));
+        if (result == true) {
+          pesananC.fetchPesanan();
+        }
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey.shade200),
-          boxShadow: [BoxShadow(color: Colors.grey.shade100, blurRadius: 5, offset: const Offset(0, 2))],
+          boxShadow: [
+            BoxShadow(
+                color: Colors.grey.shade100,
+                blurRadius: 5,
+                offset: const Offset(0, 2))
+          ],
         ),
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(data['nomor_nota'] ?? "-", style: const TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(data['nomor_nota'] ?? "-",
+                    style: const TextStyle(
+                        color: Color(0xFF2196F3),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: data['status_pembayaran'] == 'Lunas' ? Colors.green : Colors.red.shade700,
+                    color: badgeColor,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text(data['status_pembayaran'] ?? "Belum Lunas", style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                  child: Text(statusBayar,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
             const Divider(height: 24, thickness: 1),
             Row(
               children: [
-                Container(width: 50, height: 50, decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.person, color: Color(0xFF2196F3))),
+                Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(10)),
+                    child: const Icon(Icons.person, color: Color(0xFF2196F3))),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(data['customers'] != null ? data['customers']['nama_pelanggan'] : "Pelanggan", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
+                      Text(
+                          data['customers'] != null
+                              ? data['customers']['nama_pelanggan']
+                              : "Pelanggan",
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF102A43))),
                       const SizedBox(height: 4),
-                      Text("Masuk: $tgl", style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                      Text("Masuk: $tgl",
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.grey)),
                     ],
                   ),
                 ),
@@ -187,9 +261,10 @@ class PesananView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.inventory_2_outlined, size: 80, color: Colors.grey.shade300),
+          Icon(Icons.search_off, size: 80, color: Colors.grey.shade300),
           const SizedBox(height: 16),
-          Text("Belum ada data pesanan", style: TextStyle(fontSize: 16, color: Colors.grey.shade500)),
+          Text("Data tidak ditemukan",
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade500)),
         ],
       ),
     );

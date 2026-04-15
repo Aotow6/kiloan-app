@@ -71,11 +71,6 @@ class PembayaranView extends StatelessWidget {
                     Text(payC.formatRupiah(payC.totalTagihan.value), style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
                   ],
                 ),
-                ElevatedButton(
-                  onPressed: () => payC.jadikanBon(),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
-                  child: const Text("Jadikan Bon", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                )
               ],
             ),
           ),
