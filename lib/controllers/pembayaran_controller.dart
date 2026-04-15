@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'user_controller.dart';
-
 import 'detail_pesanan_controller.dart'; 
 
 class PembayaranController extends GetxController {
@@ -50,6 +49,22 @@ class PembayaranController extends GetxController {
       isLoading.value = true;
       String metode = selectedTab.value == 0 ? "Tunai" : selectedMethod.value;
 
+      final trxData = await supabase.from('transactions').select('status_pembayaran').eq('id', idTransaksi.value).single();
+      bool wasBon = trxData['status_pembayaran'] == 'Bon';
+
+      if (wasBon) {
+
+        final customerData = await supabase.from('customers').select('total_kasbon').eq('id', idCustomer.value).single();
+        int kasbonLama = customerData['total_kasbon'] ?? 0;
+        int kasbonBaru = kasbonLama - totalTagihan.value;
+
+        if (kasbonBaru < 0) kasbonBaru = 0; 
+
+        await supabase.from('customers').update({
+          'total_kasbon': kasbonBaru
+        }).eq('id', idCustomer.value);
+      }
+
       await supabase.from('transactions').update({
         'total_dibayar': totalTagihan.value,
         'status_pembayaran': 'Lunas',
@@ -62,7 +77,8 @@ class PembayaranController extends GetxController {
         'tipe_arus': 'Pemasukan',
         'nominal': totalTagihan.value,
         'metode_bayar': metode,
-        'keterangan': 'Pelunasan Nota',
+        'keterangan': wasBon ? 'Pelunasan Bon' : 'Pelunasan Nota', 
+
       });
 
       Get.back(result: true); 
@@ -70,7 +86,6 @@ class PembayaranController extends GetxController {
 
       if(Get.isRegistered<DetailPesananController>()) {
         final detailC = Get.find<DetailPesananController>();
-
         await detailC.fetchDetailItems(idTransaksi.value, "");
         final latestHeader = await supabase.from('transactions').select('*, customers(*)').eq('id', idTransaksi.value).single();
         detailC.headerData.value = latestHeader;
