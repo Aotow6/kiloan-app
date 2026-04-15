@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart'; 
 import 'package:url_launcher/url_launcher.dart'; 
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
 
 import 'transaksi_controller.dart'; 
 import 'pesanan_controller.dart'; 
@@ -482,7 +483,7 @@ class DetailPesananController extends GetxController {
     }
   }
 
-Future<void> kirimNotaWA({required Map<String, dynamic> transaksi, required String namaCustomer, required String noWa}) async {
+  Future<void> kirimNotaWA({required Map<String, dynamic> transaksi, required String namaCustomer, required String noWa}) async {
     if (noWa.isEmpty || noWa.toLowerCase() == "tanpa nomor") {
       Get.snackbar("Gagal", "Pelanggan ini tidak memiliki nomor WhatsApp", backgroundColor: Colors.orange, colorText: Colors.white);
       return;
@@ -522,15 +523,29 @@ Future<void> kirimNotaWA({required Map<String, dynamic> transaksi, required Stri
       final imageBytes = await raster.toPng();
 
       final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/Nota_$nota.png'); 
+      final file = File('${tempDir.path}/Nota_$nota.png');
       await file.writeAsBytes(imageBytes);
 
       String phone = noWa.replaceAll(RegExp(r'[^0-9]'), '');
       if (phone.startsWith('0')) phone = '62${phone.substring(1)}';
 
+      await Clipboard.setData(ClipboardData(text: phone)); 
+
+      Get.snackbar(
+        "Trik Cepat!", 
+        "Nomor HP $phone berhasil dicopy. Tinggal PASTE di pencarian kontak WhatsApp!", 
+        backgroundColor: Colors.blue.shade800, 
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+        snackPosition: SnackPosition.TOP,
+      );
+
+      await Future.delayed(const Duration(milliseconds: 800));
+
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: pesan.toString(),
+        text: pesan.toString(), 
+
       );
 
     } catch (e) {
