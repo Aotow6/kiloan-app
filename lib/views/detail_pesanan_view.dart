@@ -165,6 +165,19 @@ class DetailPesananView extends StatelessWidget {
                         if(h['status_pesanan'].toString().toLowerCase() == 'proses') {
                            detailC.updateStatus(h['id'], 'selesai');
                         } else if (h['status_pesanan'].toString().toLowerCase() == 'selesai') {
+
+                           if (!isLunas && !isBon) {
+                             Get.snackbar(
+                               "Tahan Dulu!", 
+                               "Pesanan belum dibayar. Silakan proses pembayaran atau jadikan Kasbon (Bon) terlebih dahulu sebelum barang diambil.",
+                               backgroundColor: Colors.red.shade700,
+                               colorText: Colors.white,
+                               duration: const Duration(seconds: 4),
+                             );
+                             return; 
+
+                           }
+
                            detailC.updateStatus(h['id'], 'diambil');
                         }
                       },
@@ -207,7 +220,7 @@ class DetailPesananView extends StatelessWidget {
           bool isLunas = h['status_pembayaran'].toString().toLowerCase() == 'lunas';
           bool isBon = h['status_pembayaran'].toString().toLowerCase() == 'bon';
 
-          bool isLogistikLocked = isLocked || isLunas; 
+          bool isLogistikLocked = isLocked || isLunas || isBon; 
 
           String tglMasuk = h['waktu_masuk'] != null
               ? DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(h['waktu_masuk']))
