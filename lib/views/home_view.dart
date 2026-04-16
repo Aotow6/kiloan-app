@@ -6,9 +6,12 @@ import 'pesanan_view.dart';
 import 'widgets/navbar.dart';
 
 class HomeView extends StatelessWidget {
-  HomeView({super.key});
-
   final HomeController homeC = Get.find<HomeController>();
+
+  HomeView({super.key}) {
+
+    homeC.refreshDashboard();
+  }
 
   String formatRupiah(int angka) {
     return "Rp ${angka.toString().replaceAllMapped(
@@ -19,16 +22,15 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isKasir = homeC.userC.currentUser.value?.role?.toLowerCase() == 'kasir';
 
     return WillPopScope(
       onWillPop: () async {
         if (homeC.bottomNavIndex.value != 0) {
           homeC.changeBottomNav(0);
           return false; 
-
         }
         return true; 
-
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF8F9FA),
@@ -82,7 +84,7 @@ class HomeView extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Hai,", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                        Text("Hai, ${homeC.userC.currentUser.value?.namaLengkap ?? ''}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
                         const SizedBox(height: 4),
                         Text("Selamat datang kembali", style: TextStyle(color: Colors.grey.shade600)),
                       ],
@@ -93,39 +95,40 @@ class HomeView extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                Obx(() {
-                  if (homeC.isLoading.value) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                if (!isKasir)
+                  Obx(() {
+                    if (homeC.isLoading.value) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                  return Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text("Omzet Hari Ini", style: TextStyle(color: Colors.white70)),
-                        const SizedBox(height: 8),
-                        Text(
-                          formatRupiah(homeC.omzetHariIni.value),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                          ),
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
                         ),
-                      ],
-                    ),
-                  );
-                }),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("Omzet Cashflow Hari Ini", style: TextStyle(color: Colors.white70)),
+                          const SizedBox(height: 8),
+                          Text(
+                            formatRupiah(homeC.omzetHariIni.value),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
 
-                const SizedBox(height: 16),
+                if (!isKasir) const SizedBox(height: 16),
 
                 Obx(() => Container(
                   width: double.infinity,
@@ -140,34 +143,35 @@ class HomeView extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Row(
                           children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () => homeC.isTabTransaksi.value = false,
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      "KEUANGAN",
-                                      style: TextStyle(
-                                        color: !homeC.isTabTransaksi.value
-                                            ? Colors.white
-                                            : Colors.white.withOpacity(0.6),
-                                        fontWeight: FontWeight.bold,
+                            if (!isKasir)
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => homeC.isTabTransaksi.value = false,
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        "KEUANGAN",
+                                        style: TextStyle(
+                                          color: !homeC.isTabTransaksi.value
+                                              ? Colors.white
+                                              : Colors.white.withOpacity(0.6),
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    if (!homeC.isTabTransaksi.value)
-                                      Container(height: 2, width: double.infinity, color: Colors.white),
-                                  ],
+                                      const SizedBox(height: 8),
+                                      if (!homeC.isTabTransaksi.value)
+                                        Container(height: 2, width: double.infinity, color: Colors.white),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
                             Expanded(
                               child: GestureDetector(
                                 onTap: () => homeC.isTabTransaksi.value = true,
                                 child: Column(
                                   children: [
                                     Text(
-                                      "TRANSAKSI",
+                                      isKasir ? "TINDAKAN CEPAT" : "TRANSAKSI",
                                       style: TextStyle(
                                         color: homeC.isTabTransaksi.value
                                             ? Colors.white
@@ -198,20 +202,43 @@ class HomeView extends StatelessWidget {
                                   await Get.to(() => PesananView());
                                   homeC.changeBottomNav(0); 
                                 }),
-                                _buildBlueCardItem(Icons.push_pin_outlined, "${homeC.countHarusSelesai.value} Deadline", () {}),
-                                _buildBlueCardItem(Icons.sync, "${homeC.countTerlambat.value} Telat", () {}),
+                                _buildBlueCardItem(Icons.push_pin_outlined, "${homeC.countHarusSelesai.value} Deadline", () async {
+                                  Get.put(PesananController()).changeTab(0); 
+
+                                  homeC.changeBottomNav(1);
+                                  await Get.to(() => PesananView());
+                                  homeC.changeBottomNav(0); 
+                                }),
+                                _buildBlueCardItem(Icons.sync_problem, "${homeC.countTerlambat.value} Telat", () async {
+                                  Get.put(PesananController()).changeTab(0); 
+
+                                  homeC.changeBottomNav(1);
+                                  await Get.to(() => PesananView());
+                                  homeC.changeBottomNav(0); 
+                                }),
                               ],
                             )
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 _buildBlueCardItem(
-                                  Icons.payments_outlined,
+                                  Icons.money_off,
                                   formatRupiah(homeC.nominalPiutang.value),
                                   () {
                                     Get.snackbar(
-                                      "Detail Piutang",
-                                      "Ada ${homeC.countBelumLunas.value} nota belum lunas",
+                                      "Total Piutang Berjalan",
+                                      "Ada ${homeC.countBelumLunas.value} pesanan yang belum lunas (Bukan Bon).",
+                                      backgroundColor: Colors.white,
+                                    );
+                                  },
+                                ),
+                                _buildBlueCardItem(
+                                  Icons.library_books,
+                                  formatRupiah(homeC.totalKasbonSemuaPelanggan.value),
+                                  () {
+                                    Get.snackbar(
+                                      "Total Kasbon",
+                                      "Total seluruh hutang pelanggan yang tercatat di Bon.",
                                       backgroundColor: Colors.white,
                                     );
                                   },
@@ -220,7 +247,7 @@ class HomeView extends StatelessWidget {
                                   Icons.account_balance_wallet,
                                   "Kas Tunai",
                                   () {
-                                    homeC.changeBottomNav(2);
+                                    homeC.changeBottomNav(2); 
                                   },
                                 ),
                               ],
@@ -322,7 +349,7 @@ class HomeView extends StatelessWidget {
             child: Icon(icon, color: Colors.white),
           ),
           const SizedBox(height: 8),
-          Text(label, style: const TextStyle(color: Colors.white)),
+          Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
         ],
       ),
     );
