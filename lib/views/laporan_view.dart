@@ -11,11 +11,37 @@ class LaporanView extends StatelessWidget {
   final LaporanController lapC = Get.put(LaporanController());
   final HomeController homeC = Get.find<HomeController>();
 
+  String formatRupiah(int angka) {
+    return "Rp ${angka.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.'
+    )}";
+  }
+
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       homeC.changeBottomNav(2); 
     });
+
+    if (homeC.userC.currentUser.value?.role?.toLowerCase() == 'kasir') {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF5F7FA),
+        bottomNavigationBar: CustomBottomNav(),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock_outline, size: 80, color: Colors.grey),
+              SizedBox(height: 16),
+              Text("Akses Ditolak", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+              SizedBox(height: 8),
+              Text("Halaman ini khusus untuk Admin / Owner.", style: TextStyle(color: Colors.grey)),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -48,12 +74,9 @@ class LaporanView extends StatelessWidget {
           IconButton(
             icon: const FaIcon(FontAwesomeIcons.filePdf, color: Color(0xFF102A43)),
             onPressed: () {
-              Get.snackbar(
-                "Download PDF",
-                "Fitur cetak PDF belum tersedia",
-                backgroundColor: Colors.orange,
-                colorText: Colors.white
-              );
+               if (!lapC.isLoading.value) {
+                  lapC.cetakLaporanPDF();
+               }
             }
           ),
           const SizedBox(width: 8),
@@ -73,7 +96,7 @@ class LaporanView extends StatelessWidget {
               border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
             ),
             child: const Text(
-              "Ringkasan",
+              "Ringkasan Kinerja",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF102A43))
             ),
           ),
@@ -110,23 +133,6 @@ class LaporanView extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => lapC.prosesLaporan(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2196F3),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text(
-                      "PROSES",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -137,23 +143,17 @@ class LaporanView extends StatelessWidget {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              String formatRupiah(int angka) {
-                return "Rp ${angka.toString().replaceAllMapped(
-                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                  (Match m) => '${m[1]}.'
-                )}";
-              }
-
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
+
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
+                          colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -165,7 +165,7 @@ class LaporanView extends StatelessWidget {
                       child: Column(
                         children: [
                           const Text(
-                            "Total Pendapatan Bulanan",
+                            "Total Pendapatan Kas Bulanan",
                             style: TextStyle(color: Colors.white70, fontSize: 14)
                           ),
                           const SizedBox(height: 8),
@@ -192,41 +192,75 @@ class LaporanView extends StatelessWidget {
                         border: Border.all(color: Colors.grey.shade200),
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade50,
-                                  borderRadius: BorderRadius.circular(12)
-                                ),
-                                child: const Icon(
-                                  Icons.receipt_long,
-                                  color: Color(0xFF2196F3),
-                                  size: 30
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              const Text(
-                                "Total Pesanan Masuk",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Color(0xFF102A43),
-                                  fontWeight: FontWeight.w600
-                                )
-                              ),
-                            ],
-                          ),
-                          Text(
-                            "${lapC.totalPesanan.value} Nota",
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF102A43)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(12)
+                            ),
+                            child: const Icon(
+                              Icons.receipt_long,
+                              color: Color(0xFF2196F3),
+                              size: 30
                             ),
                           ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Total Pesanan Layanan",
+                                  style: TextStyle(fontSize: 14, color: Colors.grey)
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "${lapC.totalPesanan.value} Transaksi",
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF102A43)
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.orange.shade100),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(12)
+                            ),
+                            child: const Icon(Icons.money_off, color: Colors.orange, size: 30),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text("Estimasi Piutang Baru (Bulan Ini)", style: TextStyle(fontSize: 14, color: Colors.grey)),
+                                const SizedBox(height: 4),
+                                Text(formatRupiah(lapC.totalPiutang.value), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange)),
+                              ],
+                            ),
+                          )
                         ],
                       ),
                     ),
