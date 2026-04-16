@@ -8,7 +8,7 @@ import 'widgets/navbar.dart';
 class HomeView extends StatelessWidget {
   HomeView({super.key});
 
-  final HomeController homeC = Get.put(HomeController());
+  final HomeController homeC = Get.find<HomeController>();
 
   String formatRupiah(int angka) {
     return "Rp ${angka.toString().replaceAllMapped(
@@ -19,272 +19,289 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      bottomNavigationBar: CustomBottomNav(),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2196F3).withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(8),
+
+    return WillPopScope(
+      onWillPop: () async {
+        if (homeC.bottomNavIndex.value != 0) {
+          homeC.changeBottomNav(0);
+          return false; 
+
+        }
+        return true; 
+
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        bottomNavigationBar: CustomBottomNav(),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2196F3).withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.water_drop, color: Color(0xFF2196F3)),
                         ),
-                        child: const Icon(Icons.water_drop, color: Color(0xFF2196F3)),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        "kiloan",
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF102A43)),
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.notifications_none, color: Color(0xFF2196F3), size: 28),
-                    onPressed: () {
-                      Get.snackbar(
-                        "Notifikasi",
-                        "Belum ada pemberitahuan baru hari ini.",
-                        backgroundColor: Colors.white,
-                        colorText: Colors.black87,
-                        snackPosition: SnackPosition.TOP,
-                      );
-                    },
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Hai,", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
-                      const SizedBox(height: 4),
-                      Text("Selamat datang kembali", style: TextStyle(color: Colors.grey.shade600)),
-                    ],
-                  ),
-                  const Icon(Icons.qr_code_scanner, color: Color(0xFF2196F3), size: 36),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              Obx(() {
-                if (homeC.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
+                        const SizedBox(width: 10),
+                        const Text(
+                          "kiloan",
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF102A43)),
+                        ),
+                      ],
                     ),
+                    IconButton(
+                      icon: const Icon(Icons.notifications_none, color: Color(0xFF2196F3), size: 28),
+                      onPressed: () {
+                        Get.snackbar(
+                          "Notifikasi",
+                          "Belum ada pemberitahuan baru hari ini.",
+                          backgroundColor: Colors.white,
+                          colorText: Colors.black87,
+                          snackPosition: SnackPosition.TOP,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Hai,", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                        const SizedBox(height: 4),
+                        Text("Selamat datang kembali", style: TextStyle(color: Colors.grey.shade600)),
+                      ],
+                    ),
+                    const Icon(Icons.qr_code_scanner, color: Color(0xFF2196F3), size: 36),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                Obx(() {
+                  if (homeC.isLoading.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Omzet Hari Ini", style: TextStyle(color: Colors.white70)),
+                        const SizedBox(height: 8),
+                        Text(
+                          formatRupiah(homeC.omzetHariIni.value),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+
+                const SizedBox(height: 16),
+
+                Obx(() => Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(top: 16, bottom: 24),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E88E5),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Omzet Hari Ini", style: TextStyle(color: Colors.white70)),
-                      const SizedBox(height: 8),
-                      Text(
-                        formatRupiah(homeC.omzetHariIni.value),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => homeC.isTabTransaksi.value = false,
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "KEUANGAN",
+                                      style: TextStyle(
+                                        color: !homeC.isTabTransaksi.value
+                                            ? Colors.white
+                                            : Colors.white.withOpacity(0.6),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    if (!homeC.isTabTransaksi.value)
+                                      Container(height: 2, width: double.infinity, color: Colors.white),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => homeC.isTabTransaksi.value = true,
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "TRANSAKSI",
+                                      style: TextStyle(
+                                        color: homeC.isTabTransaksi.value
+                                            ? Colors.white
+                                            : Colors.white.withOpacity(0.6),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    if (homeC.isTabTransaksi.value)
+                                      Container(height: 2, width: double.infinity, color: Colors.white),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+
+                      const SizedBox(height: 24),
+
+                      homeC.isTabTransaksi.value
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildBlueCardItem(Icons.download, "${homeC.countMasukHariIni.value} Masuk", () async {
+                                  Get.put(PesananController()).changeTab(0);
+                                  homeC.changeBottomNav(1);
+                                  await Get.to(() => PesananView());
+                                  homeC.changeBottomNav(0); 
+                                }),
+                                _buildBlueCardItem(Icons.push_pin_outlined, "${homeC.countHarusSelesai.value} Deadline", () {}),
+                                _buildBlueCardItem(Icons.sync, "${homeC.countTerlambat.value} Telat", () {}),
+                              ],
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildBlueCardItem(
+                                  Icons.payments_outlined,
+                                  formatRupiah(homeC.nominalPiutang.value),
+                                  () {
+                                    Get.snackbar(
+                                      "Detail Piutang",
+                                      "Ada ${homeC.countBelumLunas.value} nota belum lunas",
+                                      backgroundColor: Colors.white,
+                                    );
+                                  },
+                                ),
+                                _buildBlueCardItem(
+                                  Icons.account_balance_wallet,
+                                  "Kas Tunai",
+                                  () {
+                                    homeC.changeBottomNav(2);
+                                  },
+                                ),
+                              ],
+                            ),
                     ],
                   ),
-                );
-              }),
+                )),
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
-              Obx(() => Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(top: 16, bottom: 24),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E88E5),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => homeC.isTabTransaksi.value = false,
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "KEUANGAN",
-                                    style: TextStyle(
-                                      color: !homeC.isTabTransaksi.value
-                                          ? Colors.white
-                                          : Colors.white.withOpacity(0.6),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  if (!homeC.isTabTransaksi.value)
-                                    Container(height: 2, width: double.infinity, color: Colors.white),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => homeC.isTabTransaksi.value = true,
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "TRANSAKSI",
-                                    style: TextStyle(
-                                      color: homeC.isTabTransaksi.value
-                                          ? Colors.white
-                                          : Colors.white.withOpacity(0.6),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  if (homeC.isTabTransaksi.value)
-                                    Container(height: 2, width: double.infinity, color: Colors.white),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                    GestureDetector(
+                      onTap: () async {
+                        final pesananC = Get.put(PesananController());
+                        pesananC.changeTab(0);
+                        homeC.changeBottomNav(1);
+                        await Get.to(() => PesananView());
+                        homeC.changeBottomNav(0); 
+                      },
+                      child: _statusMenu(
+                        icon: Icons.local_laundry_service,
+                        label: "Diproses",
+                        count: homeC.countProses,
+                        color: Colors.blue.shade700,
+                        bgColor: Colors.blue.shade50,
                       ),
                     ),
-
-                    const SizedBox(height: 24),
-
-                    homeC.isTabTransaksi.value
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _buildBlueCardItem(Icons.download, "${homeC.countMasukHariIni.value} Masuk", () {
-                                Get.put(PesananController()).changeTab(0);
-                                homeC.changeBottomNav(1);
-                                Get.to(() => PesananView());
-                              }),
-                              _buildBlueCardItem(Icons.push_pin_outlined, "${homeC.countHarusSelesai.value} Deadline", () {}),
-                              _buildBlueCardItem(Icons.sync, "${homeC.countTerlambat.value} Telat", () {}),
-                            ],
-                          )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _buildBlueCardItem(
-                                Icons.payments_outlined,
-                                formatRupiah(homeC.nominalPiutang.value),
-                                () {
-                                  Get.snackbar(
-                                    "Detail Piutang",
-                                    "Ada ${homeC.countBelumLunas.value} nota belum lunas",
-                                    backgroundColor: Colors.white,
-                                  );
-                                },
-                              ),
-                              _buildBlueCardItem(
-                                Icons.account_balance_wallet,
-                                "Kas Tunai",
-                                () {
-                                  homeC.changeBottomNav(2);
-                                },
-                              ),
-                            ],
-                          ),
+                    GestureDetector(
+                      onTap: () async {
+                        final pesananC = Get.put(PesananController());
+                        pesananC.changeTab(1);
+                        homeC.changeBottomNav(1);
+                        await Get.to(() => PesananView());
+                        homeC.changeBottomNav(0); 
+                      },
+                      child: _statusMenu(
+                        icon: Icons.check_circle,
+                        label: "Selesai",
+                        count: homeC.countSelesai,
+                        color: Colors.green.shade700,
+                        bgColor: Colors.green.shade50,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        final pesananC = Get.put(PesananController());
+                        pesananC.changeTab(2);
+                        homeC.changeBottomNav(1);
+                        await Get.to(() => PesananView());
+                        homeC.changeBottomNav(0); 
+                      },
+                      child: _statusMenu(
+                        icon: Icons.inventory_2,
+                        label: "Diambil",
+                        count: homeC.countDiambil,
+                        color: Colors.orange.shade700,
+                        bgColor: Colors.orange.shade50,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        final pesananC = Get.put(PesananController());
+                        pesananC.changeTab(3);
+                        homeC.changeBottomNav(1);
+                        await Get.to(() => PesananView());
+                        homeC.changeBottomNav(0); 
+                      },
+                      child: _statusMenu(
+                        icon: Icons.cancel,
+                        label: "Batal",
+                        count: homeC.countBatal,
+                        color: Colors.red.shade700,
+                        bgColor: Colors.red.shade50,
+                      ),
+                    ),
                   ],
                 ),
-              )),
-
-              const SizedBox(height: 24),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      final pesananC = Get.put(PesananController());
-                      pesananC.changeTab(0);
-                      homeC.changeBottomNav(1);
-                      Get.to(() => PesananView());
-                    },
-                    child: _statusMenu(
-                      icon: Icons.local_laundry_service,
-                      label: "Diproses",
-                      count: homeC.countProses,
-                      color: Colors.blue.shade700,
-                      bgColor: Colors.blue.shade50,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      final pesananC = Get.put(PesananController());
-                      pesananC.changeTab(1);
-                      homeC.changeBottomNav(1);
-                      Get.to(() => PesananView());
-                    },
-                    child: _statusMenu(
-                      icon: Icons.check_circle,
-                      label: "Selesai",
-                      count: homeC.countSelesai,
-                      color: Colors.green.shade700,
-                      bgColor: Colors.green.shade50,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      final pesananC = Get.put(PesananController());
-                      pesananC.changeTab(2);
-                      homeC.changeBottomNav(1);
-                      Get.to(() => PesananView());
-                    },
-                    child: _statusMenu(
-                      icon: Icons.inventory_2,
-                      label: "Diambil",
-                      count: homeC.countDiambil,
-                      color: Colors.orange.shade700,
-                      bgColor: Colors.orange.shade50,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      final pesananC = Get.put(PesananController());
-                      pesananC.changeTab(3);
-                      homeC.changeBottomNav(1);
-                      Get.to(() => PesananView());
-                    },
-                    child: _statusMenu(
-                      icon: Icons.cancel,
-                      label: "Batal",
-                      count: homeC.countBatal,
-                      color: Colors.red.shade700,
-                      bgColor: Colors.red.shade50,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

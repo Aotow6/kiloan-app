@@ -5,6 +5,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:laundry_app/controllers/user_controller.dart';
 import 'package:laundry_app/controllers/layanan_controller.dart';
 import 'package:laundry_app/controllers/pelanggan_controller.dart';
+import 'package:laundry_app/controllers/home_controller.dart'; 
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'views/login_view.dart';
 import 'views/home_view.dart';
@@ -20,6 +22,7 @@ void main() async {
   );
 
   Get.put(UserController(), permanent: true);
+  Get.put(HomeController(), permanent: true); 
   Get.lazyPut(() => LayananController());
   Get.lazyPut(() => PelangganController());
 

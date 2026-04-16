@@ -317,11 +317,9 @@ class DetailPesananView extends StatelessWidget {
                               detailC.isPengantaranSaved.value
                                   ? IconButton(
                                       icon: const Icon(Icons.edit, color: Colors.grey, size: 20),
-
                                       onPressed: isLogistikLocked ? null : () => _showTambahPengantaranBottomSheet(h, h['status_pesanan']), 
                                     )
                                   : ElevatedButton(
-
                                       onPressed: isLogistikLocked ? null : () => _showTambahPengantaranBottomSheet(h, h['status_pesanan']), 
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.orange,

@@ -62,20 +62,25 @@ class CustomBottomNav extends StatelessWidget {
   Widget _bottomNavItem({required IconData icon, required String label, required int index}) {
     return Expanded(
       child: InkWell(
-        onTap: () {
+
+        onTap: () async {
+          int previousIndex = homeC.bottomNavIndex.value; 
+
           homeC.changeBottomNav(index);
 
           if (index == 0) {
             Get.offAll(() => HomeView());
-
           } else if (index == 1) {
-            Get.to(() => PesananView());
+            await Get.to(() => PesananView());
+            homeC.changeBottomNav(previousIndex); 
+
           } else if (index == 3) {
-          Get.to(() => PengaturanView()); 
-          }else if (index == 2) {
-          Get.to(() => LaporanView()); 
+            await Get.to(() => PengaturanView()); 
+            homeC.changeBottomNav(previousIndex);
+          } else if (index == 2) {
+            await Get.to(() => LaporanView()); 
+            homeC.changeBottomNav(previousIndex);
           }
-          
         },
         highlightColor: Colors.transparent,
         splashColor: Colors.transparent,

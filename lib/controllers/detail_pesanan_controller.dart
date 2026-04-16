@@ -8,12 +8,12 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart'; 
 import 'package:path_provider/path_provider.dart'; 
-import 'package:url_launcher/url_launcher.dart'; 
-import 'package:share_plus/share_plus.dart';
+import 'package:share_whatsapp/share_whatsapp.dart';
 import 'package:flutter/services.dart';
 
 import 'transaksi_controller.dart'; 
 import 'pesanan_controller.dart'; 
+import 'home_controller.dart'; 
 import 'user_controller.dart';
 import '../views/pilih_layanan_view.dart';
 
@@ -39,6 +39,10 @@ class DetailPesananController extends GetxController {
 
   var isPengantaranSaved = false.obs;
   var isDataChanged = false;
+
+  String _formatRupiahInternal(int val) {
+    return val.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+  }
 
   bool hasEmoji(String text) {
     return RegExp(
@@ -120,11 +124,33 @@ class DetailPesananController extends GetxController {
     trxC.isEditMode.value = true;
     trxC.idTransaksiEdit.value = transaksiLama['id'];
 
+    int oldTagihan = transaksiLama['total_tagihan'] ?? 0;
+    bool isBon = (transaksiLama['status_pembayaran'] ?? '').toString().toLowerCase() == 'bon';
+    int custId = transaksiLama['customer_id'] ?? 0;
+
     await Get.to(() => PilihLayananView(
       namaCustomer: dataPelanggan['nama_pelanggan'] ?? 'Pelanggan',
       idCustomer: transaksiLama['customer_id'] ?? 0,
       noHp: dataPelanggan['no_wa'] ?? '',
     )); 
+
+    await fetchDetailItems(transaksiLama['id'], transaksiLama['catatan']);
+
+    if (isBon && custId != 0) {
+       int newTagihan = headerData['total_tagihan'] ?? 0;
+       int selisih = newTagihan - oldTagihan;
+
+       if (selisih != 0) {
+         final cust = await supabase.from('customers').select('total_kasbon').eq('id', custId).single();
+         int currentKasbon = cust['total_kasbon'] ?? 0;
+
+         await supabase.from('customers').update({'total_kasbon': currentKasbon + selisih}).eq('id', custId);
+       }
+    }
+
+    if (Get.isRegistered<HomeController>()) {
+       Get.find<HomeController>().refreshDashboard();
+    }
   }
 
   Future<void> konfirmasiSimpanPengantaran(int transactionId, int subtotalAwal) async {
@@ -150,16 +176,30 @@ class DetailPesananController extends GetxController {
 
     try {
       isLoading.value = true;
+
+      int newTagihan = subtotalAwal + ongkirBaru;
+      int oldTagihan = headerData['total_tagihan'] ?? 0;
+      int selisih = newTagihan - oldTagihan;
+      bool isBon = (headerData['status_pembayaran'] ?? '').toString().toLowerCase() == 'bon';
+      int custId = headerData['customer_id'] ?? 0;
+
       await supabase.from('transactions').update({
         'tipe_logistik': 'antar_jemput', 
         'alamat_layanan': alamatBaru,
         'delivery_fee': ongkirBaru,
-        'total_tagihan': subtotalAwal + ongkirBaru, 
+        'total_tagihan': newTagihan, 
       }).eq('id', transactionId);
+
+      if (isBon && selisih != 0 && custId != 0) {
+         final cust = await supabase.from('customers').select('total_kasbon').eq('id', custId).single();
+         int currentKasbon = cust['total_kasbon'] ?? 0;
+         await supabase.from('customers').update({'total_kasbon': currentKasbon + selisih}).eq('id', custId);
+      }
 
       isDataChanged = true; 
       Get.back(); 
       await fetchDetailItems(transactionId, catatanEditCtrl.text);
+      if (Get.isRegistered<HomeController>()) Get.find<HomeController>().refreshDashboard();
       Get.snackbar("Sukses", "Informasi Logistik berhasil disimpan!", backgroundColor: Colors.green, colorText: Colors.white);
     } catch (e) {
       Get.snackbar("Gagal", "Error simpan logistik: $e", backgroundColor: Colors.red, colorText: Colors.white);
@@ -171,6 +211,13 @@ class DetailPesananController extends GetxController {
   Future<void> batalkanPengantaran(int transactionId, int subtotalAwal) async {
     try {
       isLoading.value = true;
+
+      int oldTagihan = headerData['total_tagihan'] ?? 0;
+      int selisih = subtotalAwal - oldTagihan; 
+
+      bool isBon = (headerData['status_pembayaran'] ?? '').toString().toLowerCase() == 'bon';
+      int custId = headerData['customer_id'] ?? 0;
+
       await supabase.from('transactions').update({
         'tipe_logistik': 'none',
         'alamat_layanan': null,
@@ -178,9 +225,16 @@ class DetailPesananController extends GetxController {
         'total_tagihan': subtotalAwal, 
       }).eq('id', transactionId);
 
+      if (isBon && selisih != 0 && custId != 0) {
+         final cust = await supabase.from('customers').select('total_kasbon').eq('id', custId).single();
+         int currentKasbon = cust['total_kasbon'] ?? 0;
+         await supabase.from('customers').update({'total_kasbon': currentKasbon + selisih}).eq('id', custId);
+      }
+
       isDataChanged = true; 
       Get.back(); 
       await fetchDetailItems(transactionId, catatanEditCtrl.text);
+      if (Get.isRegistered<HomeController>()) Get.find<HomeController>().refreshDashboard();
       Get.snackbar("Info", "Informasi Logistik dibatalkan", backgroundColor: Colors.orange, colorText: Colors.white);
     } catch (e) {
       Get.snackbar("Gagal", "Error batal logistik: $e", backgroundColor: Colors.red, colorText: Colors.white);
@@ -223,10 +277,6 @@ class DetailPesananController extends GetxController {
         String noWa = headerData['customers']?['no_wa'] ?? '';
         String nama = headerData['customers']?['nama_pelanggan'] ?? '';
         if (noWa.isNotEmpty && noWa != "tanpa nomor") {
-             String phone = noWa.replaceAll(RegExp(r'[^0-9]'), '');
-             if (phone.startsWith('0')) phone = '62${phone.substring(1)}';
-             String pesan = "Halo kak *$nama*,\nCucian dengan nota *${headerData['nomor_nota']}* sudah *SELESAI* dan siap diambil ya kak! Terima kasih. 💧";
-
              Get.snackbar("Berhasil", "Status Selesai. Silakan klik ikon WhatsApp untuk kirimi nota ke $nama", backgroundColor: Colors.blue, colorText: Colors.white, duration: const Duration(seconds: 4));
         } else {
              Get.snackbar("Berhasil", "Status diperbarui jadi SELESAI", backgroundColor: Colors.blue, colorText: Colors.white);      
@@ -307,7 +357,7 @@ class DetailPesananController extends GetxController {
     String namaOutlet = "Laundry Outlet";
     String alamatOutlet = "Alamat tidak tersedia";
     try {
-      if (userC.outletId != null && (userC.outletId ?? 0) > 0) {
+      if ((userC.outletId ?? 0) > 0) {
         final outletData = await supabase.from('outlets').select('nama_outlet, alamat').eq('id', userC.outletId).single();
         namaOutlet = outletData['nama_outlet'] ?? "Laundry Outlet";
         alamatOutlet = outletData['alamat'] ?? "Alamat tidak tersedia";
@@ -322,10 +372,6 @@ class DetailPesananController extends GetxController {
       totalQty += double.tryParse(item['kuantitas'].toString()) ?? 0.0;
     }
 
-    String formatRp(num val) {
-      return val.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
-    }
-
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.roll80, 
@@ -334,7 +380,6 @@ class DetailPesananController extends GetxController {
         build: (pw.Context context) {
           return pw.Container(
             color: PdfColors.white, 
-
             width: double.infinity,
             padding: const pw.EdgeInsets.all(10),
             child: pw.Column(
@@ -405,8 +450,8 @@ class DetailPesananController extends GetxController {
                       pw.Row(
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
-                          pw.Text("${qty.toStringAsFixed(qty.truncateToDouble() == qty ? 0 : 1)} $satuan X ${formatRp(hargaSatuan)}", style: const pw.TextStyle(fontSize: 10)),
-                          pw.Text(formatRp(subtotal), style: const pw.TextStyle(fontSize: 10)),
+                          pw.Text("${qty.toStringAsFixed(qty.truncateToDouble() == qty ? 0 : 1)} $satuan X ${_formatRupiahInternal(hargaSatuan)}", style: const pw.TextStyle(fontSize: 10)),
+                          pw.Text(_formatRupiahInternal(subtotal), style: const pw.TextStyle(fontSize: 10)),
                         ]
                       ),
                       pw.SizedBox(height: 4),
@@ -422,21 +467,21 @@ class DetailPesananController extends GetxController {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text("Total Tagihan", style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                    pw.Text(formatRp(totalTagihan), style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                    pw.Text(_formatRupiahInternal(totalTagihan), style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
                   ]
                 ),
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text("Dibayar", style: const pw.TextStyle(fontSize: 10)),
-                    pw.Text(formatRp(dibayar), style: const pw.TextStyle(fontSize: 10)),
+                    pw.Text(_formatRupiahInternal(dibayar), style: const pw.TextStyle(fontSize: 10)),
                   ]
                 ),
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text("Kembalian", style: const pw.TextStyle(fontSize: 10)),
-                    pw.Text(formatRp(kembalian), style: const pw.TextStyle(fontSize: 10)),
+                    pw.Text(_formatRupiahInternal(kembalian), style: const pw.TextStyle(fontSize: 10)),
                   ]
                 ),
 
@@ -469,9 +514,7 @@ class DetailPesananController extends GetxController {
   Future<void> cetakNotaPDF(Map<String, dynamic> h) async {
     try {
       isLoading.value = true;
-
       final bytes = await _generateNotaBytes(h);
-
       await Printing.layoutPdf(
         onLayout: (PdfPageFormat format) async => bytes,
         name: 'Nota_${h['nomor_nota']}',
@@ -483,7 +526,14 @@ class DetailPesananController extends GetxController {
     }
   }
 
-  Future<void> kirimNotaWA({required Map<String, dynamic> transaksi, required String namaCustomer, required String noWa}) async {
+  Future<void> kirimNotaWA({
+    required Map<String, dynamic> transaksi,
+    required String namaCustomer,
+    required String noWa,
+  }) async {
+
+    if (isLoading.value) return;
+
     if (noWa.isEmpty || noWa.toLowerCase() == "tanpa nomor") {
       Get.snackbar("Gagal", "Pelanggan ini tidak memiliki nomor WhatsApp", backgroundColor: Colors.orange, colorText: Colors.white);
       return;
@@ -492,64 +542,91 @@ class DetailPesananController extends GetxController {
     try {
       isLoading.value = true;
 
+      String cleanNumber = noWa.replaceAll(RegExp(r'[^0-9]'), '');
+      String phoneAPI = cleanNumber; 
+      String phoneCopy = cleanNumber; 
+
+      if (cleanNumber.startsWith('0')) {
+        phoneAPI = '62${cleanNumber.substring(1)}';
+        phoneCopy = cleanNumber; 
+      } else if (cleanNumber.startsWith('62')) {
+        phoneAPI = cleanNumber;
+        phoneCopy = '0${cleanNumber.substring(2)}'; 
+      }
+
       String statusP = transaksi['status_pesanan'].toString().toLowerCase();
       String nota = transaksi['nomor_nota'] ?? "-";
       StringBuffer pesan = StringBuffer();
 
       if (statusP == 'proses') {
-        pesan.writeln("*NOTA LAUNDRY* 💧\n-----------------------------------");
-        pesan.writeln("Halo kak *$namaCustomer*,\nBerikut adalah nota pesanan cucian kakak:\n");
-        pesan.writeln("⏳ *Status Pesanan:* PROSES");
-        pesan.writeln("💳 *Status Bayar:* ${transaksi['status_pembayaran']}\n");
-        pesan.writeln("💰 *TOTAL TAGIHAN: Rp ${transaksi['total_tagihan']}*");
-        pesan.writeln("\nCucian kakak akan segera kami selesaikan. Terima kasih! 🙏");
+        pesan.writeln("*NOTA LAUNDRY* 💧");
+        pesan.writeln("-----------------------------------");
+        pesan.writeln("Halo kak *$namaCustomer*,");
+        pesan.writeln("Berikut nota pesanan cucian kakak:\n");
+        pesan.writeln("⏳ *Status:* PROSES");
+        pesan.writeln("💳 *Bayar:* ${transaksi['status_pembayaran']}");
+        pesan.writeln("💰 *TOTAL: Rp ${_formatRupiahInternal(transaksi['total_tagihan'] ?? 0)}*");
+        pesan.writeln("\nCucian kakak segera kami selesaikan. Terima kasih! 🙏");
       } else if (statusP == 'selesai') {
-        pesan.writeln("*INFO LAUNDRY* 💧\n-----------------------------------");
-        pesan.writeln("Halo kak *$namaCustomer*,\nKabar gembira! Cucian kakak dengan nota *$nota* sudah *SELESAI* diproses dan *SIAP DIAMBIL* ya kak.");
+        pesan.writeln("*INFO LAUNDRY* 💧");
+        pesan.writeln("-----------------------------------");
+        pesan.writeln("Halo kak *$namaCustomer*,");
+        pesan.writeln("Cucian nota *$nota* sudah *SELESAI* dan *SIAP DIAMBIL* 🎉");
         if (transaksi['status_pembayaran'].toString().toLowerCase() != 'lunas') {
-          pesan.writeln("\nTotal tagihan kakak: *Rp ${transaksi['total_tagihan']}* (${transaksi['status_pembayaran']})");
+          pesan.writeln("\nTotal tagihan: *Rp ${_formatRupiahInternal(transaksi['total_tagihan'] ?? 0)}* (${transaksi['status_pembayaran']})");
         }
         pesan.writeln("\nDitunggu kedatangannya. Terima kasih! 🙏");
       } else if (statusP == 'diambil') {
-        pesan.writeln("*TERIMA KASIH* 💧\n-----------------------------------");
-        pesan.writeln("Halo kak *$namaCustomer*,\nCucian dengan nota *$nota* sudah diambil. Terima kasih telah mempercayakan laundry pakaian kakak kepada kami. Kami tunggu kedatangannya kembali! 🙏");
+        pesan.writeln("*TERIMA KASIH* 💧");
+        pesan.writeln("-----------------------------------");
+        pesan.writeln("Halo kak *$namaCustomer*,");
+        pesan.writeln("Cucian nota *$nota* sudah diambil.");
+        pesan.writeln("Terima kasih sudah mempercayakan laundry kakak kepada kami! 🙏");
       } else if (statusP == 'batal') {
-        pesan.writeln("*PEMBATALAN PESANAN* 💧\n-----------------------------------");
-        pesan.writeln("Mohon maaf kak *$namaCustomer*,\nCucian dengan nota *$nota* telah *DIBATALKAN*. Jika ada pertanyaan, silakan hubungi kami. 🙏");
+        pesan.writeln("*PEMBATALAN PESANAN* 💧");
+        pesan.writeln("-----------------------------------");
+        pesan.writeln("Mohon maaf kak *$namaCustomer*,");
+        pesan.writeln("Pesanan nota *$nota* telah *DIBATALKAN*.");
+        pesan.writeln("Jika ada pertanyaan, silakan hubungi kami. 🙏");
       }
 
       final pdfBytes = await _generateNotaBytes(transaksi);
       final raster = await Printing.raster(pdfBytes, pages: [0], dpi: 200).first;
       final imageBytes = await raster.toPng();
 
-      final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/Nota_$nota.png');
+      final directory = await getExternalStorageDirectory(); 
+      if (directory == null) throw Exception("Gagal mengakses penyimpanan");
+      final file = File('${directory.path}/Nota_$nota.png');
       await file.writeAsBytes(imageBytes);
 
-      String phone = noWa.replaceAll(RegExp(r'[^0-9]'), '');
-      if (phone.startsWith('0')) phone = '62${phone.substring(1)}';
+      await Future.delayed(const Duration(milliseconds: 500));
 
-      await Clipboard.setData(ClipboardData(text: phone)); 
+      bool? isInstalled = await shareWhatsapp.installed();
 
+      await Clipboard.setData(ClipboardData(text: phoneCopy));
       Get.snackbar(
-        "Trik Cepat!", 
-        "Nomor HP $phone berhasil dicopy. Tinggal PASTE di pencarian kontak WhatsApp!", 
+        "Trik Cepat! 💡", 
+        "Nomor HP $phoneCopy udah otomatis di-copy. Tinggal PASTE di pencarian WhatsApp ya!", 
         backgroundColor: Colors.blue.shade800, 
         colorText: Colors.white,
         duration: const Duration(seconds: 4),
-        snackPosition: SnackPosition.TOP,
       );
 
       await Future.delayed(const Duration(milliseconds: 800));
 
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: pesan.toString(), 
-
-      );
+      if (isInstalled == true) {
+        await shareWhatsapp.share(
+          text: pesan.toString(),
+          phone: phoneAPI, 
+          file: XFile(file.path), 
+        );
+      } else {
+        Get.snackbar("Error", "WA tidak terdeteksi di HP ini", backgroundColor: Colors.red, colorText: Colors.white);
+      }
 
     } catch (e) {
       Get.snackbar("Error", "Gagal menyiapkan nota WA: $e", backgroundColor: Colors.red, colorText: Colors.white);
+      debugPrint("kirimNotaWA error: $e");
     } finally {
       isLoading.value = false;
     }
