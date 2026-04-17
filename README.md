@@ -1,6 +1,13 @@
 # 🧺 Laundry Kiloan
 *Digital Laundry Management System*
 
+## 👥Nama Anggota Tim:
+
+- 👤Shafa Rizqi Nur Wahidah (2409116041)
+- 👤Rabiatul Hikmah (2409116049)
+- 👤Nayla Lelyanggraheni Hutomo (2409116061)
+- 👤Satria Rajawali Ektya Antara (2409116067)
+
 ## 📖 Deskripsi Aplikasi
 **Laundry Kiloan** adalah aplikasi berbasis mobile yang dikembangkan menggunakan Flutter sebagai solusi digital untuk operasional bisnis laundry modern. Aplikasi ini dirancang untuk menggantikan sistem pencatatan manual menjadi sistem terintegrasi yang cepat, akurat, dan profesional.
 
