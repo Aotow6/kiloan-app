@@ -58,7 +58,6 @@ Dengan dukungan backend Supabase, aplikasi ini mampu mengelola data secara *real
 * Login & *session management*
 * Identifikasi pegawai berdasarkan `user_id`
 
----
 
 ## 🧠 Arsitektur Sistem
 
@@ -79,7 +78,6 @@ Dengan dukungan backend Supabase, aplikasi ini mampu mengelola data secara *real
 * *Timestamp automation*
 * *Delivery fee logic*
 
----
 
 ## 🧩 Widget yang Digunakan
 
@@ -90,9 +88,10 @@ Dengan dukungan backend Supabase, aplikasi ini mampu mengelola data secara *real
 * **State Management:** `Obx`, `.obs`, `Get.put()`, `Get.find()`
 * **Feedback UI:** `ElevatedButton`, `OutlinedButton`, `IconButton`, `Get.snackbar()`, `CircularProgressIndicator`
 
----
+
 
 ## 🗂️ Struktur Folder Project
+
 
 ## 🛠️ Teknologi yang Digunakan
 
@@ -104,8 +103,7 @@ Dengan dukungan backend Supabase, aplikasi ini mampu mengelola data secara *real
 | PostgreSQL | Database |
 | Dart | Bahasa pemrograman |
 
-
-
+---
 ## 🖼️ Tampilan Aplikasi
 
 
