@@ -37,13 +37,17 @@ class HeaderCurve extends StatelessWidget {
 
         width: double.infinity,
         color: const Color(0xFF2196F3),
-        child: const Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: 20),
-            Icon(Icons.local_laundry_service, size: 80, color: Colors.white),
-            SizedBox(height: 10),
-            Text(
+            const SizedBox(height: 20),
+              Image.asset(
+                        'assets/images/splash.png',
+                          height: 80,
+                          width: 80,
+                        ),            
+            const SizedBox(height: 10),
+            const Text(
               'Kiloan',
               style: TextStyle(
                 color: Colors.white,
