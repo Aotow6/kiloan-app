@@ -60,6 +60,7 @@ class TambahLayananView extends StatelessWidget {
                   
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\s\-\&]')),
+                    LengthLimitingTextInputFormatter(20),
                   ],
 
                   decoration: InputDecoration(
@@ -117,6 +118,7 @@ class TambahLayananView extends StatelessWidget {
               textCapitalization: TextCapitalization.none, 
               inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
+              LengthLimitingTextInputFormatter(30),
               ],
             )),
             const SizedBox(height: 20),

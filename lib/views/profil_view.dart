@@ -80,6 +80,7 @@ class ProfilView extends StatelessWidget {
 
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
+                LengthLimitingTextInputFormatter(30),
               ],
             )),
 
@@ -92,6 +93,7 @@ class ProfilView extends StatelessWidget {
 
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9@\.\-_]")),
+                LengthLimitingTextInputFormatter(30),
               ],
               decoration: InputDecoration(
                 filled: true,

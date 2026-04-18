@@ -194,7 +194,7 @@ class TransaksiController extends GetxController {
         return;
       }
       if (alamat.length < 5) {
-        Get.snackbar("Error", "Alamat terlalu pendek! Maksimal 255 karakter.", backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar("Error", "Alamat terlalu pendek! Minimal 5 karakter.", backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }
       if (!isPenjemputan.value && !isPengantaran.value) {

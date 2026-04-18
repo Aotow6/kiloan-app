@@ -31,6 +31,7 @@ class RegisterView extends StatelessWidget {
                     errorText: authC.errNamaLengkap.value,
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
+                      LengthLimitingTextInputFormatter(30),
                     ],
                   )),
                   Obx(() => CustomTextField(
@@ -40,6 +41,7 @@ class RegisterView extends StatelessWidget {
                     errorText: authC.errNamaLaundry.value,
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
+                      LengthLimitingTextInputFormatter(30),
                     ],
                   )),
 
@@ -51,6 +53,7 @@ class RegisterView extends StatelessWidget {
 
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(13),
                     ],
                   )),
 
@@ -61,6 +64,7 @@ class RegisterView extends StatelessWidget {
                     errorText: authC.errEmailRegis.value,
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\@\.\-\_]")),
+                      LengthLimitingTextInputFormatter(30),
                     ],
                   )),
                   Obx(() => CustomTextField(

@@ -59,6 +59,7 @@ class OutletView extends StatelessWidget {
 
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
+                      LengthLimitingTextInputFormatter(30),
                     ],
                   )),
                   const SizedBox(height: 20),
@@ -73,6 +74,7 @@ class OutletView extends StatelessWidget {
 
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\'\,\/\(\)]")),
+                      LengthLimitingTextInputFormatter(100),
                     ],
                   )),
                   const SizedBox(height: 24),
