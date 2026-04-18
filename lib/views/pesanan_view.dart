@@ -48,9 +48,21 @@ class PesananView extends StatelessWidget {
                 return RefreshIndicator(
                   onRefresh: () => pesananC.fetchPesanan(),
                   child: ListView.builder(
+                    controller: pesananC.scrollController, 
+
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                    itemCount: items.length,
+
+                    itemCount: items.length + (pesananC.isLoadingMore.value ? 1 : 0),
                     itemBuilder: (context, index) {
+
+                      if (index == items.length) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Center(
+                            child: CircularProgressIndicator(color: Colors.blue),
+                          ),
+                        );
+                      }
                       return _orderCard(items[index]);
                     },
                   ),
@@ -75,7 +87,6 @@ class PesananView extends StatelessWidget {
             children: [
               Row(
                 children: [
-
                   Image.asset(
                     'assets/images/app.png',
                     height: 32,
@@ -88,13 +99,11 @@ class PesananView extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF2196F3))),
                 ],
-                ),
-                const Icon(Icons.receipt_long, color: Color(0xFF2196F3), size: 28),
+              ),
+              const Icon(Icons.receipt_long, color: Color(0xFF2196F3), size: 28),
             ],
           ),
-
           const SizedBox(height: 15),
-
           TextField(
             onChanged: (value) => pesananC.searchQuery.value = value,
             decoration: InputDecoration(

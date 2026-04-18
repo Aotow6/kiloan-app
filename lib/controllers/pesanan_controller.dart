@@ -12,6 +12,11 @@ class PesananController extends GetxController {
   var isLoading = false.obs;
   var searchQuery = ''.obs;
 
+  final int limit = 10;
+  var hasMore = true.obs;
+  var isLoadingMore = false.obs;
+  final ScrollController scrollController = ScrollController();
+
   final List<String> tabs = [
     "Diproses",
     "Selesai",
@@ -27,6 +32,12 @@ class PesananController extends GetxController {
   void onInit() {
     super.onInit();
     fetchPesanan();
+
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 50) {
+        loadMorePesanan();
+      }
+    });
   }
 
   void changeTab(int index) {
@@ -37,6 +48,7 @@ class PesananController extends GetxController {
   Future<void> fetchPesanan() async {
     try {
       isLoading.value = true;
+      hasMore.value = true; 
 
       String statusFilter = tabs[selectedTab.value].toLowerCase();
       if (statusFilter == "diproses") statusFilter = "proses";
@@ -46,9 +58,15 @@ class PesananController extends GetxController {
           .select('*, customers(nama_pelanggan, no_wa)')
           .eq('outlet_id', userC.outletId!)
           .eq('status_pesanan', statusFilter)
-          .order('waktu_masuk', ascending: false);
+          .order('waktu_masuk', ascending: false)
+          .range(0, limit - 1); 
 
-      listPesanan.value = List<Map<String, dynamic>>.from(data);
+      if (data.length < limit) {
+        hasMore.value = false; 
+
+      }
+
+      listPesanan.assignAll(List<Map<String, dynamic>>.from(data));
     } catch (e) {
       Get.snackbar("Error", "Gagal mengambil data pesanan: $e");
     } finally {
@@ -56,38 +74,67 @@ class PesananController extends GetxController {
     }
   }
 
-  Future<void> updateStatusPesanan(int id, String statusBaru) async {
-  try {
-    await supabase
-        .from('transactions')
-        .update({'status_pesanan': statusBaru.toLowerCase()})
-        .eq('id', id);
+  Future<void> loadMorePesanan() async {
+    if (isLoadingMore.value || !hasMore.value) return;
 
-    fetchPesanan(); 
-
-    Get.back(); 
-
-    Get.snackbar(
-      "Berhasil", 
-      "Status pesanan telah diubah menjadi $statusBaru",
-      backgroundColor: Colors.green,
-      colorText: Colors.white
-    );
-  } catch (e) {
-    Get.snackbar("Error", "Gagal memperbarui status: $e");
-  }
-}
-
-Future<void> lunasiPembayaran(int idTransaksi) async {
     try {
+      isLoadingMore.value = true;
 
+      String statusFilter = tabs[selectedTab.value].toLowerCase();
+      if (statusFilter == "diproses") statusFilter = "proses";
+
+      int start = listPesanan.length;
+      int end = start + limit - 1;
+
+      final data = await supabase
+          .from('transactions')
+          .select('*, customers(nama_pelanggan, no_wa)')
+          .eq('outlet_id', userC.outletId!)
+          .eq('status_pesanan', statusFilter)
+          .order('waktu_masuk', ascending: false)
+          .range(start, end); 
+
+      if (data.length < limit) {
+        hasMore.value = false; 
+
+      }
+
+      listPesanan.addAll(List<Map<String, dynamic>>.from(data));
+    } catch (e) {
+      debugPrint("Error load more: $e");
+    } finally {
+      isLoadingMore.value = false;
+    }
+  }
+
+  Future<void> updateStatusPesanan(int id, String statusBaru) async {
+    try {
+      await supabase
+          .from('transactions')
+          .update({'status_pesanan': statusBaru.toLowerCase()})
+          .eq('id', id);
+
+      fetchPesanan(); 
+      Get.back(); 
+      Get.snackbar(
+        "Berhasil", 
+        "Status pesanan telah diubah menjadi $statusBaru",
+        backgroundColor: Colors.green,
+        colorText: Colors.white
+      );
+    } catch (e) {
+      Get.snackbar("Error", "Gagal memperbarui status: $e");
+    }
+  }
+
+  Future<void> lunasiPembayaran(int idTransaksi) async {
+    try {
       await supabase
           .from('transactions')
           .update({'status_pembayaran': 'Lunas'})
           .eq('id', idTransaksi);
 
       await fetchPesanan(); 
-
       Get.back();
       Get.snackbar(
         "Lunas!", 
@@ -97,27 +144,26 @@ Future<void> lunasiPembayaran(int idTransaksi) async {
         icon: const Icon(Icons.check_circle, color: Colors.white),
       );
     } catch (e) {
-      Get.snackbar("Error", "Gagal melunasi pembayaran: $e", 
-          backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Error", "Gagal melunasi pembayaran: $e", backgroundColor: Colors.red, colorText: Colors.white);
     }
   }
+
   Future<Map<String, dynamic>?> fetchDetailPesanan(int transactionId) async {
-  try {
-    final data = await supabase
-        .from('transactions')
-        .select('*, customers(*)') 
-
-        .eq('id', transactionId)
-        .single();
-    return data;
-  } catch (e) {
-    print("Error fetch detail pesanan: $e");
-    return null;
-  }
-}
-Future<void> batalkanPesanan(int transactionId, bool isLunas, int totalDibayar) async {
     try {
+      final data = await supabase
+          .from('transactions')
+          .select('*, customers(*)') 
+          .eq('id', transactionId)
+          .single();
+      return data;
+    } catch (e) {
+      debugPrint("Error fetch detail pesanan: $e");
+      return null;
+    }
+  }
 
+  Future<void> batalkanPesanan(int transactionId, bool isLunas, int totalDibayar) async {
+    try {
       await supabase.from('transactions').update({
         'status_pesanan': 'batal',
       }).eq('id', transactionId);
@@ -130,17 +176,13 @@ Future<void> batalkanPesanan(int transactionId, bool isLunas, int totalDibayar) 
           'transaction_id': transactionId,
           'tipe_arus': 'Pengeluaran',
           'nominal': totalDibayar, 
-
           'metode_bayar': 'Tunai', 
-
           'keterangan': 'Refund Pembatalan Pesanan',
         });
       }
 
       Get.back(); 
-
       fetchPesanan(); 
-
       Get.snackbar("Dibatalkan", "Pesanan berhasil dibatalkan", backgroundColor: Colors.red, colorText: Colors.white);
     } catch (e) {
       Get.snackbar("Error", "Gagal membatalkan pesanan: $e");
@@ -160,10 +202,8 @@ Future<void> batalkanPesanan(int transactionId, bool isLunas, int totalDibayar) 
         Get.back(); 
         try {
           isLoading.value = true;
-
           await supabase.from('transaction_details').delete().eq('transaction_id', transactionId);
           await supabase.from('cashflows').delete().eq('transaction_id', transactionId);
-
           await supabase.from('transactions').delete().eq('id', transactionId);
 
           await fetchPesanan(); 
@@ -176,5 +216,11 @@ Future<void> batalkanPesanan(int transactionId, bool isLunas, int totalDibayar) 
         }
       }
     );
+  }
+
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
   }
 }
