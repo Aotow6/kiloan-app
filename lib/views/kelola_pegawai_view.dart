@@ -57,7 +57,7 @@ class KelolaPegawaiView extends StatelessWidget {
       ),
 
       body: Obx(() {
-        if (pegC.isLoading.value) {
+        if (pegC.isLoading.value && pegC.listPegawai.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 
@@ -76,70 +76,86 @@ class KelolaPegawaiView extends StatelessWidget {
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: dataPegawai.length,
-          itemBuilder: (context, index) {
-            var pegawai = dataPegawai[index];
-            bool isActive = pegawai['status_aktif'] as bool? ?? false;
-            String nama = pegawai['nama_lengkap']?.toString() ?? "Tanpa Nama";
-            String noHp = pegawai['no_hp']?.toString() ?? "-";
-            String idPegawai = pegawai['id'].toString();
+        return RefreshIndicator(
+          onRefresh: () => pegC.fetchPegawai(),
+          child: ListView.builder(
+            controller: pegC.scrollController, 
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 2))],
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: isActive ? const Color(0xFF2196F3) : Colors.grey.shade400,
-                    child: const FaIcon(FontAwesomeIcons.solidUser, color: Colors.white, size: 20),
+            padding: const EdgeInsets.all(16),
+
+            itemCount: dataPegawai.length + (pegC.isLoadingMore.value ? 1 : 0),
+            itemBuilder: (context, index) {
+
+              if (index == dataPegawai.length) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(
+                    child: CircularProgressIndicator(color: Colors.blue),
                   ),
-                  const SizedBox(width: 16),
+                );
+              }
 
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              var pegawai = dataPegawai[index];
+              bool isActive = pegawai['status_aktif'] as bool? ?? false;
+              String nama = pegawai['nama_lengkap']?.toString() ?? "Tanpa Nama";
+              String noHp = pegawai['no_hp']?.toString() ?? "-";
+              String idPegawai = pegawai['id'].toString();
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 2))],
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: isActive ? const Color(0xFF2196F3) : Colors.grey.shade400,
+                      child: const FaIcon(FontAwesomeIcons.solidUser, color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 16),
+
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(nama, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
+                          const SizedBox(height: 4),
+                          Text(noHp, style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                        ],
+                      ),
+                    ),
+
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(nama, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
-                        const SizedBox(height: 4),
-                        Text(noHp, style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                        Switch(
+                          value: isActive,
+                          activeColor: Colors.green,
+                          onChanged: (val) => pegC.toggleStatus(idPegawai, isActive, nama),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined, color: Colors.orange),
+                          constraints: const BoxConstraints(),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          onPressed: () => pegC.goToEdit(pegawai),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.red),
+                          constraints: const BoxConstraints(),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          onPressed: () => pegC.hapusPegawai(idPegawai, nama),
+                        ),
                       ],
                     ),
-                  ),
-
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Switch(
-                        value: isActive,
-                        activeColor: Colors.green,
-                        onChanged: (val) => pegC.toggleStatus(idPegawai, isActive, nama),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined, color: Colors.orange),
-                        constraints: const BoxConstraints(),
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        onPressed: () => pegC.goToEdit(pegawai),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                        constraints: const BoxConstraints(),
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        onPressed: () => pegC.hapusPegawai(idPegawai, nama),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
+                  ],
+                ),
+              );
+            },
+          ),
         );
       }),
     );

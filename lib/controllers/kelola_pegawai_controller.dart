@@ -14,10 +14,21 @@ class KelolaPegawaiController extends GetxController {
   var isSearching = false.obs;
   var searchQuery = "".obs;
 
+  final int limit = 10;
+  var hasMore = true.obs;
+  var isLoadingMore = false.obs;
+  final ScrollController scrollController = ScrollController();
+
   @override
   void onInit() {
     super.onInit();
     if (userC.outletId != null) fetchPegawai();
+
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 50) {
+        loadMorePegawai();
+      }
+    });
   }
 
   List<Map<String, dynamic>> get filteredPegawai {
@@ -32,19 +43,55 @@ class KelolaPegawaiController extends GetxController {
     if (userC.outletId == null) return;
     try {
       isLoading.value = true;
+      hasMore.value = true; 
+
       final data = await supabase
           .from('users')
           .select()
           .eq('outlet_id', userC.outletId!)
           .neq('role', 'owner') 
+          .order('created_at', ascending: false)
+          .range(0, limit - 1); 
 
-          .order('created_at', ascending: false);
+      if (data.length < limit) {
+        hasMore.value = false;
+      }
 
       listPegawai.value = List<Map<String, dynamic>>.from(data);
     } catch (e) {
       Get.snackbar("Error", "Gagal mengambil data pegawai: $e");
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> loadMorePegawai() async {
+
+    if (isLoadingMore.value || !hasMore.value || searchQuery.value.isNotEmpty) return;
+
+    try {
+      isLoadingMore.value = true;
+      int start = listPegawai.length;
+      int end = start + limit - 1;
+
+      final data = await supabase
+          .from('users')
+          .select()
+          .eq('outlet_id', userC.outletId!)
+          .neq('role', 'owner') 
+          .order('created_at', ascending: false)
+          .range(start, end);
+
+      if (data.length < limit) {
+        hasMore.value = false; 
+
+      }
+
+      listPegawai.addAll(List<Map<String, dynamic>>.from(data));
+    } catch (e) {
+      debugPrint("Error load more pegawai: $e");
+    } finally {
+      isLoadingMore.value = false;
     }
   }
 
@@ -100,5 +147,12 @@ class KelolaPegawaiController extends GetxController {
     tamC.setEditMode(pegawai); 
 
     Get.to(() => TambahPegawaiView());
+  }
+
+  @override
+  void onClose() {
+    scrollController.dispose(); 
+
+    super.onClose();
   }
 }
