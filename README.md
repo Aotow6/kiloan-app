@@ -135,6 +135,7 @@ lib/
 │
 └── main.dart               # Entry point aplikasi & inisialisasi Supabase/GetX
 ```
+</details>
 
 
 ## 🛠️ Teknologi yang Digunakan
@@ -147,24 +148,8 @@ lib/
 | PostgreSQL | Database |
 | Dart | Bahasa pemrograman |
 
----
 
-## 💻 Cara Menjalankan Project (Getting Started)
 
-Ikuti langkah-langkah di bawah ini untuk menjalankan *source code* **Laundry App** di lingkungan lokal Anda:
-
-### 1. Persiapan Kebutuhan (Prerequisites)
-Sebelum memulai, pastikan perangkat Anda sudah terinstal perangkat lunak berikut:
-* **Flutter SDK:** Versi stabil terbaru ([Panduan Instalasi](https://docs.flutter.dev/get-started/install)).
-* **Code Editor:** Visual Studio Code (disarankan) atau Android Studio.
-* **Emulator/Device:** Android Emulator, Simulator iOS, atau perangkat fisik yang sudah terhubung via USB Debugging.
-
-### 2. Clone Repository
-Buka terminal atau command prompt, lalu jalankan perintah berikut untuk mengunduh kode proyek:
-```bash
-git clone [https://github.com/username-kalian/laundry-app.git](https://github.com/username-kalian/laundry-app.git)
-cd laundry-app
-```
 
 ## 🖼️ Tampilan Aplikasi
 
