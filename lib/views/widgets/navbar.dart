@@ -4,6 +4,7 @@ import 'package:laundry_app/views/home_view.dart';
 import 'package:laundry_app/views/laporan_view.dart';
 import 'package:laundry_app/views/pengaturan_view.dart';
 import '../../controllers/home_controller.dart';
+import '../../controllers/pelanggan_controller.dart';
 import '../pesanan_view.dart';
 import '../cari_pelanggan_view.dart';
 import '../tambah_pelanggan_view.dart';
@@ -25,7 +26,7 @@ class CustomBottomNav extends StatelessWidget {
             height: 65,
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, -3))],
+              boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.15), blurRadius: 10, offset: const Offset(0, -3))],
             ),
           ),
           Row(
@@ -44,7 +45,7 @@ class CustomBottomNav extends StatelessWidget {
                     color: const Color(0xFF2196F3),
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 5),
-                    boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))],
+                    boxShadow: [BoxShadow(color: Colors.blue.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
                   ),
                   child: const Icon(Icons.add, size: 36, color: Colors.white),
                 ),
@@ -137,9 +138,12 @@ class CustomBottomNav extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            GestureDetector(
-              onTap: () {
-                Get.back();
+           GestureDetector(
+              onTap: () async {
+                Get.back(); 
+
+                final pelC = Get.put(PelangganController());
+                await pelC.ambilDariKontak();
               },
               child: _bottomSheetMenu(icon: Icons.contacts, label: "Ambil dari Kontak HP", iconBg: Colors.grey.shade200, iconColor: Colors.grey.shade800),
             ),

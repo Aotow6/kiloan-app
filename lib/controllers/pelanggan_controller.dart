@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'user_controller.dart';
 import '../views/detail_pelanggan_view.dart';
 import '../views/tambah_pelanggan_view.dart';
@@ -85,6 +87,41 @@ class PelangganController extends GetxController {
     isTanpaNomor.value = false;
     clearErrors();
     Get.to(() => TambahPelangganView());
+  }
+
+      final FlutterNativeContactPicker _contactPicker = FlutterNativeContactPicker();
+
+  Future<void> ambilDariKontak() async {
+    try {
+
+      Contact? contact = await _contactPicker.selectContact();
+
+      if (contact != null) {
+        String namaKontak = contact.fullName ?? 'Pelanggan Baru';
+        String noHpKontak = '';
+
+        if (contact.phoneNumbers != null && contact.phoneNumbers!.isNotEmpty) {
+
+          noHpKontak = contact.phoneNumbers!.first.replaceAll(RegExp(r'[^0-9+]'), '');
+
+          if (noHpKontak.startsWith('+62')) {
+            noHpKontak = '0${noHpKontak.substring(3)}';
+          } else if (noHpKontak.startsWith('62')) {
+            noHpKontak = '0${noHpKontak.substring(2)}';
+          }
+        }
+
+        isEdit.value = false;
+        namaCtrl.text = namaKontak;
+        phoneCtrl.text = noHpKontak;
+        isTanpaNomor.value = noHpKontak.isEmpty; 
+        clearErrors();
+
+        Get.to(() => TambahPelangganView());
+      }
+    } catch (e) {
+      debugPrint("Error pilih kontak: $e");
+    }
   }
 
   void setEditMode(String nama, String phone, int id) {
@@ -204,7 +241,6 @@ class PelangganController extends GetxController {
 
           if (dariDetail) {
              Get.back(); 
-
           }
 
           Get.snackbar("Sukses", "Data $nama berhasil dihapus", backgroundColor: Colors.red.shade600, colorText: Colors.white);
@@ -242,7 +278,8 @@ class PelangganController extends GetxController {
     phoneCtrl.dispose();
     super.onClose();
   }
-    var detailKasbon = 0.obs;
+
+  var detailKasbon = 0.obs;
   var detailPiutang = 0.obs;
   var detailTotalNominal = 0.obs;
   var detailTotalTransaksi = 0.obs;
@@ -280,7 +317,6 @@ class PelangganController extends GetxController {
         if (statusPesanan == 'batal') {
           batal++;
         } else {
-
           nominal += tagihan;
 
           if (statusBayar == 'belum lunas') {
@@ -320,7 +356,7 @@ class PelangganController extends GetxController {
       detailTransaksiTerakhir.value = lastDate != null ? formatter.format(lastDate) : "-";
 
     } catch (e) {
-      print("Error fetch detail pelanggan: $e");
+      debugPrint("Error fetch detail pelanggan: $e");
     } finally {
       isDetailLoading.value = false;
     }
