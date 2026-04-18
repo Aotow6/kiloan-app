@@ -54,18 +54,15 @@ class LaporanView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2196F3).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(6)
-              ),
-              child: const Icon(Icons.water_drop, color: Color(0xFF2196F3), size: 24)
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              "kiloan",
-              style: TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 22)
+            Image.asset(
+            'assets/images/app.png', 
+            height: 32, 
+            width: 32,
+          ),
+          const SizedBox(width: 8),
+          const Text(
+            "kiloan",
+            style: TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 22)
             ),
           ],
         ),

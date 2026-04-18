@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart'; 
+
+import 'package:intl/intl.dart'; 
+
 import '../controllers/home_controller.dart';
 import '../controllers/pesanan_controller.dart';
 import 'pesanan_view.dart';
@@ -9,7 +13,6 @@ class HomeView extends StatelessWidget {
   final HomeController homeC = Get.find<HomeController>();
 
   HomeView({super.key}) {
-
     homeC.refreshDashboard();
   }
 
@@ -23,6 +26,8 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isKasir = homeC.userC.currentUser.value?.role?.toLowerCase() == 'kasir';
+
+    String tanggalHariIni = DateFormat('dd MMM yyyy').format(DateTime.now());
 
     return WillPopScope(
       onWillPop: () async {
@@ -46,27 +51,30 @@ class HomeView extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2196F3).withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(Icons.water_drop, color: Color(0xFF2196F3)),
+
+                        Image.asset(
+                          'assets/images/app.png',
+                          height: 36,
+                          width: 36,
                         ),
                         const SizedBox(width: 10),
                         const Text(
                           "kiloan",
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF102A43)),
+                          style: TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 22)
                         ),
                       ],
                     ),
+
                     IconButton(
-                      icon: const Icon(Icons.notifications_none, color: Color(0xFF2196F3), size: 28),
+                      icon: FaIcon(
+                        isKasir ? FontAwesomeIcons.userTie : FontAwesomeIcons.userGear, 
+                        color: const Color(0xFF2196F3), 
+                        size: 26
+                      ),
                       onPressed: () {
                         Get.snackbar(
-                          "Notifikasi",
-                          "Belum ada pemberitahuan baru hari ini.",
+                          "Info Akun",
+                          "Anda sedang login sebagai ${isKasir ? 'Kasir' : 'Owner'}.",
                           backgroundColor: Colors.white,
                           colorText: Colors.black87,
                           snackPosition: SnackPosition.TOP,
@@ -80,6 +88,7 @@ class HomeView extends StatelessWidget {
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +98,25 @@ class HomeView extends StatelessWidget {
                         Text("Selamat datang kembali", style: TextStyle(color: Colors.grey.shade600)),
                       ],
                     ),
-                    const Icon(Icons.qr_code_scanner, color: Color(0xFF2196F3), size: 36),
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.blue.shade100)
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.calendar_month, color: Color(0xFF2196F3), size: 18),
+                          const SizedBox(height: 4),
+                          Text(
+                            tanggalHariIni, 
+                            style: const TextStyle(color: Color(0xFF102A43), fontWeight: FontWeight.bold, fontSize: 12)
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
 

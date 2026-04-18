@@ -75,16 +75,21 @@ class PesananView extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.water_drop, color: Color(0xFF2196F3), size: 28),
+
+                  Image.asset(
+                    'assets/images/app.png',
+                    height: 32,
+                    width: 32,
+                  ),
                   const SizedBox(width: 8),
                   const Text("kiloan",
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF102A43))),
+                          color: Color(0xFF2196F3))),
                 ],
-              ),
-              const Icon(Icons.history, color: Color(0xFF2196F3), size: 28),
+                ),
+                const Icon(Icons.receipt_long, color: Color(0xFF2196F3), size: 28),
             ],
           ),
 
@@ -174,7 +179,6 @@ class PesananView extends StatelessWidget {
       statusBayar = 'Batal';
       badgeColor = const Color.fromARGB(255, 255, 0, 0);
     } else {
-
       if (statusBayar == 'Lunas') badgeColor = Colors.green;
       if (statusBayar == 'Bon') badgeColor = Colors.orange;
     }

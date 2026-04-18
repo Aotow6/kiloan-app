@@ -32,17 +32,37 @@ class PengaturanView extends StatelessWidget {
         automaticallyImplyLeading: false, 
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(4), 
-              decoration: BoxDecoration(color: const Color(0xFF2196F3).withOpacity(0.2), borderRadius: BorderRadius.circular(6)), 
-              child: const Icon(Icons.water_drop, color: Color(0xFF2196F3), size: 24)
+
+            Image.asset(
+              'assets/images/app.png',
+              height: 36,
+              width: 36,
             ),
             const SizedBox(width: 10),
             const Text("kiloan", style: TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 22)),
           ],
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.notifications_none, color: Color(0xFF2196F3), size: 28), onPressed: () {}),
+
+          Obx(() {
+            bool isKasir = userC.currentUser.value?.role?.toLowerCase() == 'kasir';
+            return IconButton(
+              icon: FaIcon(
+                isKasir ? FontAwesomeIcons.userTie : FontAwesomeIcons.userGear, 
+                color: const Color(0xFF2196F3), 
+                size: 26
+              ),
+              onPressed: () {
+                Get.snackbar(
+                  "Info Akun",
+                  "Anda sedang login sebagai ${isKasir ? 'Kasir' : 'Owner'}.",
+                  backgroundColor: Colors.white,
+                  colorText: Colors.black87,
+                  snackPosition: SnackPosition.TOP,
+                );
+              },
+            );
+          }),
         ],
       ),
       bottomNavigationBar: CustomBottomNav(),
@@ -54,7 +74,7 @@ class PengaturanView extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
-                boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
+                boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 5))],
               ),
               child: Row(
                 children: [
@@ -96,7 +116,7 @@ class PengaturanView extends StatelessWidget {
                     iconColor: Colors.blue.shade700,
                     onTap: () {Get.to(() => ProfilView());}
                   ),
-                  
+
                   _divider(),
 
                   Obx(() => userC.isOwner 
@@ -122,7 +142,7 @@ class PengaturanView extends StatelessWidget {
                     iconColor: Colors.lightBlue.shade600,
                     onTap: () {Get.to(() => KelolaPelangganView());}
                   ),
-                  
+
                   _divider(),
 
                   Obx(() => userC.isOwner 
@@ -184,7 +204,8 @@ class PengaturanView extends StatelessWidget {
             Container(
               width: 48, height: 48,
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
+                color: iconColor.withValues(alpha: 0.1), 
+
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(child: FaIcon(icon, color: iconColor, size: 22)),

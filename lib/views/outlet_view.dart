@@ -24,13 +24,13 @@ class OutletView extends StatelessWidget {
         leading: IconButton(icon: const Icon(Icons.arrow_back, color: Color(0xFF102A43)), onPressed: () => Get.back()),
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(4), 
-              decoration: BoxDecoration(color: const Color(0xFF2196F3).withOpacity(0.2), borderRadius: BorderRadius.circular(6)), 
-              child: const Icon(Icons.water_drop, color: Color(0xFF2196F3), size: 24)
-            ),
+              Image.asset(
+                    'assets/images/app.png',
+                    height: 32,
+                    width: 32,
+                  ),
             const SizedBox(width: 10),
-            const Text("kiloan", style: TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 22)),
+            const Text("kiloan",             style: TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 22)),
           ],
         ),
       ),

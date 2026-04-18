@@ -18,12 +18,14 @@ class ProfilView extends StatelessWidget {
         leading: IconButton(icon: const Icon(Icons.arrow_back, color: Color(0xFF102A43)), onPressed: () => Get.back()),
         title: Row( 
           children: [
-            Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(color: Color(0x332196F3), borderRadius: BorderRadius.all(Radius.circular(6))),
-                child: const Icon(Icons.water_drop, color: Color(0xFF2196F3), size: 18)),
+             Image.asset(
+                    'assets/images/app.png',
+                    height: 32,
+                    width: 32,
+                  ),
             const SizedBox(width: 8),
-            const Text("kiloan", style: TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 20)),
+            const Text("kiloan",             style: TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 22)),
+            
           ],
         ),
       ),
