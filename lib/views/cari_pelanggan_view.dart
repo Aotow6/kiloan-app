@@ -65,7 +65,7 @@ class CariPelangganView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Obx(() => Text(
-                        "Pelanggan (${pelC.filteredPelanggan.length})",
+                        "Pelanggan (${pelC.totalPelanggan.value})",
                         style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -131,7 +131,7 @@ class CariPelangganView extends StatelessWidget {
             const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
             Expanded(
               child: Obx(() {
-                if (pelC.isLoading.value) {
+                if (pelC.isLoading.value && pelC.listPelanggan.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
@@ -141,42 +141,56 @@ class CariPelangganView extends StatelessWidget {
                   return const Center(child: Text("Belum ada pelanggan"));
                 }
 
-                return ListView.builder(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  itemCount: data.length,
-                  itemBuilder: (context, index) {
-                    var p = data[index];
+                return RefreshIndicator(
+                  onRefresh: () => pelC.fetchPelanggan(),
+                  child: ListView.builder(
+                    controller: pelC.scrollController, 
 
-                    String nama = p['nama_pelanggan'] ?? '';
-                    String noHp = p['no_wa'] ?? "Tanpa nomor";
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    itemCount: data.length + (pelC.isLoadingMore.value ? 1 : 0),
+                    itemBuilder: (context, index) {
 
-                    String inisial = nama.isNotEmpty
-                        ? nama
-                            .trim()
-                            .split(' ')
-                            .map((e) => e[0])
-                            .take(2)
-                            .join()
-                            .toUpperCase()
-                        : "--";
-
-                    return Column(
-                      children: [
-                        GestureDetector(
-                          onTap: () => pelC.goToDetail(nama, noHp, p['id']),
-                          child: _pelangganItem(
-                            inisial: inisial,
-                            nama: nama,
-                            noHp: noHp,
-                            isBaru: false,
-                            id: p['id'],
+                      if (index == data.length) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Center(
+                            child: CircularProgressIndicator(color: Colors.blue),
                           ),
-                        ),
-                        const Divider(height: 24, color: Color(0xFFEEEEEE)),
-                      ],
-                    );
-                  },
+                        );
+                      }
+
+                      var p = data[index];
+
+                      String nama = p['nama_pelanggan'] ?? '';
+                      String noHp = p['no_wa'] ?? "Tanpa nomor";
+
+                      String inisial = nama.isNotEmpty
+                          ? nama
+                              .trim()
+                              .split(' ')
+                              .map((e) => e[0])
+                              .take(2)
+                              .join()
+                              .toUpperCase()
+                          : "--";
+
+                      return Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () => pelC.goToDetail(nama, noHp, p['id']),
+                            child: _pelangganItem(
+                              inisial: inisial,
+                              nama: nama,
+                              noHp: noHp,
+                              isBaru: false,
+                              id: p['id'],
+                            ),
+                          ),
+                          const Divider(height: 24, color: Color(0xFFEEEEEE)),
+                        ],
+                      );
+                    },
+                  ),
                 );
               }),
             ),

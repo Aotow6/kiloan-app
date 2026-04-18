@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'user_controller.dart';
 
@@ -15,57 +16,68 @@ class PesananController extends GetxController {
   final int limit = 10;
   var hasMore = true.obs;
   var isLoadingMore = false.obs;
-  final ScrollController scrollController = ScrollController();
 
-  final List<String> tabs = [
-    "Diproses",
-    "Selesai",
-    "Diambil",
-    "Batal"
-  ];
+  var startDate = Rxn<DateTime>();
+  var endDate = Rxn<DateTime>();
 
-  bool get isOwner {
-    return true;
-  }
+  final List<String> tabs = ["Diproses", "Selesai", "Diambil", "Batal"];
+
+  bool get isOwner => true;
 
   @override
   void onInit() {
     super.onInit();
     fetchPesanan();
-
-    scrollController.addListener(() {
-      if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 50) {
-        loadMorePesanan();
-      }
-    });
   }
 
-  void changeTab(int index) {
-    selectedTab.value = index;
+  Future<void> pilihTanggal(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2024),
+      lastDate: DateTime.now(),
+      initialDateRange: startDate.value != null && endDate.value != null
+          ? DateTimeRange(start: startDate.value!, end: endDate.value!)
+          : null,
+      helpText: "Pilih Rentang Tanggal Pesanan",
+      saveText: "TERAPKAN",
+    );
+
+    if (picked != null) {
+      startDate.value = picked.start;
+      endDate.value = DateTime(picked.end.year, picked.end.month, picked.end.day, 23, 59, 59);
+      fetchPesanan(); 
+    }
+  }
+
+  void resetFilterTanggal() {
+    startDate.value = null;
+    endDate.value = null;
     fetchPesanan();
   }
 
   Future<void> fetchPesanan() async {
     try {
       isLoading.value = true;
-      hasMore.value = true; 
+      hasMore.value = true;
 
       String statusFilter = tabs[selectedTab.value].toLowerCase();
       if (statusFilter == "diproses") statusFilter = "proses";
 
-      final data = await supabase
+      var query = supabase
           .from('transactions')
           .select('*, customers(nama_pelanggan, no_wa)')
           .eq('outlet_id', userC.outletId!)
-          .eq('status_pesanan', statusFilter)
-          .order('waktu_masuk', ascending: false)
-          .range(0, limit - 1); 
+          .eq('status_pesanan', statusFilter);
 
-      if (data.length < limit) {
-        hasMore.value = false; 
-
+      if (startDate.value != null && endDate.value != null) {
+        query = query
+            .gte('waktu_masuk', startDate.value!.toIso8601String())
+            .lte('waktu_masuk', endDate.value!.toIso8601String());
       }
 
+      final data = await query.order('waktu_masuk', ascending: false).range(0, limit - 1);
+
+      if (data.length < limit) hasMore.value = false;
       listPesanan.assignAll(List<Map<String, dynamic>>.from(data));
     } catch (e) {
       Get.snackbar("Error", "Gagal mengambil data pesanan: $e");
@@ -76,29 +88,29 @@ class PesananController extends GetxController {
 
   Future<void> loadMorePesanan() async {
     if (isLoadingMore.value || !hasMore.value) return;
-
     try {
       isLoadingMore.value = true;
-
       String statusFilter = tabs[selectedTab.value].toLowerCase();
       if (statusFilter == "diproses") statusFilter = "proses";
 
       int start = listPesanan.length;
       int end = start + limit - 1;
 
-      final data = await supabase
+      var query = supabase
           .from('transactions')
           .select('*, customers(nama_pelanggan, no_wa)')
           .eq('outlet_id', userC.outletId!)
-          .eq('status_pesanan', statusFilter)
-          .order('waktu_masuk', ascending: false)
-          .range(start, end); 
+          .eq('status_pesanan', statusFilter);
 
-      if (data.length < limit) {
-        hasMore.value = false; 
-
+      if (startDate.value != null && endDate.value != null) {
+        query = query
+            .gte('waktu_masuk', startDate.value!.toIso8601String())
+            .lte('waktu_masuk', endDate.value!.toIso8601String());
       }
 
+      final data = await query.order('waktu_masuk', ascending: false).range(start, end);
+
+      if (data.length < limit) hasMore.value = false;
       listPesanan.addAll(List<Map<String, dynamic>>.from(data));
     } catch (e) {
       debugPrint("Error load more: $e");
@@ -107,69 +119,39 @@ class PesananController extends GetxController {
     }
   }
 
+  void changeTab(int index) {
+    selectedTab.value = index;
+    fetchPesanan();
+  }
+
   Future<void> updateStatusPesanan(int id, String statusBaru) async {
     try {
-      await supabase
-          .from('transactions')
-          .update({'status_pesanan': statusBaru.toLowerCase()})
-          .eq('id', id);
-
+      await supabase.from('transactions').update({'status_pesanan': statusBaru.toLowerCase()}).eq('id', id);
       fetchPesanan(); 
       Get.back(); 
-      Get.snackbar(
-        "Berhasil", 
-        "Status pesanan telah diubah menjadi $statusBaru",
-        backgroundColor: Colors.green,
-        colorText: Colors.white
-      );
-    } catch (e) {
-      Get.snackbar("Error", "Gagal memperbarui status: $e");
-    }
+      Get.snackbar("Berhasil", "Status pesanan telah diubah", backgroundColor: Colors.green, colorText: Colors.white);
+    } catch (e) { Get.snackbar("Error", e.toString()); }
   }
 
   Future<void> lunasiPembayaran(int idTransaksi) async {
     try {
-      await supabase
-          .from('transactions')
-          .update({'status_pembayaran': 'Lunas'})
-          .eq('id', idTransaksi);
-
+      await supabase.from('transactions').update({'status_pembayaran': 'Lunas'}).eq('id', idTransaksi);
       await fetchPesanan(); 
       Get.back();
-      Get.snackbar(
-        "Lunas!", 
-        "Pembayaran berhasil diterima", 
-        backgroundColor: Colors.green, 
-        colorText: Colors.white,
-        icon: const Icon(Icons.check_circle, color: Colors.white),
-      );
-    } catch (e) {
-      Get.snackbar("Error", "Gagal melunasi pembayaran: $e", backgroundColor: Colors.red, colorText: Colors.white);
-    }
+      Get.snackbar("Lunas!", "Pembayaran diterima", backgroundColor: Colors.green, colorText: Colors.white);
+    } catch (e) { Get.snackbar("Error", e.toString()); }
   }
 
   Future<Map<String, dynamic>?> fetchDetailPesanan(int transactionId) async {
     try {
-      final data = await supabase
-          .from('transactions')
-          .select('*, customers(*)') 
-          .eq('id', transactionId)
-          .single();
-      return data;
-    } catch (e) {
-      debugPrint("Error fetch detail pesanan: $e");
-      return null;
-    }
+      return await supabase.from('transactions').select('*, customers(*)').eq('id', transactionId).single();
+    } catch (e) { return null; }
   }
 
   Future<void> batalkanPesanan(int transactionId, bool isLunas, int totalDibayar) async {
     try {
-      await supabase.from('transactions').update({
-        'status_pesanan': 'batal',
-      }).eq('id', transactionId);
-
+      await supabase.from('transactions').update({'status_pesanan': 'batal'}).eq('id', transactionId);
       if (isLunas && totalDibayar > 0) {
-        final userC = Get.find<UserController>();
         await supabase.from('cashflows').insert({
           'outlet_id': userC.outletId,
           'user_id': userC.currentUser.value?.id,
@@ -177,27 +159,20 @@ class PesananController extends GetxController {
           'tipe_arus': 'Pengeluaran',
           'nominal': totalDibayar, 
           'metode_bayar': 'Tunai', 
-          'keterangan': 'Refund Pembatalan Pesanan',
+          'keterangan': 'Refund Batal',
         });
       }
-
       Get.back(); 
       fetchPesanan(); 
-      Get.snackbar("Dibatalkan", "Pesanan berhasil dibatalkan", backgroundColor: Colors.red, colorText: Colors.white);
-    } catch (e) {
-      Get.snackbar("Error", "Gagal membatalkan pesanan: $e");
-    }
+      Get.snackbar("Dibatalkan", "Pesanan batal", backgroundColor: Colors.red, colorText: Colors.white);
+    } catch (e) { Get.snackbar("Error", e.toString()); }
   }
 
   Future<void> hapusTransaksiPermanen(int transactionId) async {
     Get.defaultDialog(
       title: "Hapus Transaksi",
-      middleText: "Apakah Anda yakin ingin menghapus transaksi ini secara permanen? Data tidak dapat dikembalikan.",
-      textConfirm: "Ya, Hapus",
-      textCancel: "Batal",
-      confirmTextColor: Colors.white,
-      buttonColor: Colors.red.shade700,
-      cancelTextColor: Colors.blue,
+      middleText: "Hapus permanen?",
+      textConfirm: "Ya", textCancel: "Batal",
       onConfirm: () async {
         Get.back(); 
         try {
@@ -205,22 +180,11 @@ class PesananController extends GetxController {
           await supabase.from('transaction_details').delete().eq('transaction_id', transactionId);
           await supabase.from('cashflows').delete().eq('transaction_id', transactionId);
           await supabase.from('transactions').delete().eq('id', transactionId);
-
           await fetchPesanan(); 
           Get.back(); 
-          Get.snackbar("Terhapus", "Transaksi berhasil dihapus secara permanen", backgroundColor: Colors.green, colorText: Colors.white);
-        } catch (e) {
-          Get.snackbar("Error", "Gagal menghapus transaksi: $e", backgroundColor: Colors.red, colorText: Colors.white);
-        } finally {
-          isLoading.value = false;
-        }
+        } catch (e) { Get.snackbar("Error", e.toString()); }
+        finally { isLoading.value = false; }
       }
     );
-  }
-
-  @override
-  void onClose() {
-    scrollController.dispose();
-    super.onClose();
   }
 }

@@ -58,7 +58,7 @@ class KelolaPelangganView extends StatelessWidget {
             child: Row(
               children: [
                 Obx(() => Text(
-                  "Total: ${pelC.filteredPelanggan.length} Pelanggan", 
+                  "Total: ${pelC.totalPelanggan.value} Pelanggan", 
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54)
                 )),
               ],
@@ -67,7 +67,7 @@ class KelolaPelangganView extends StatelessWidget {
 
           Expanded(
             child: Obx(() {
-              if (pelC.isLoading.value) {
+              if (pelC.isLoading.value && pelC.listPelanggan.isEmpty) {
                  return const Center(child: CircularProgressIndicator());
               }
 
@@ -86,88 +86,103 @@ class KelolaPelangganView extends StatelessWidget {
                 );
               }
 
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                itemCount: dataList.length,
-                itemBuilder: (context, index) {
-                  var pelanggan = dataList[index];
+              return RefreshIndicator(
+                onRefresh: () => pelC.fetchPelanggan(),
+                child: ListView.builder(
+                  controller: pelC.scrollController, 
 
-                  String nama = pelanggan['nama_pelanggan']?.toString() ?? "Tanpa Nama";
-                  String telepon = pelanggan['no_wa']?.toString() ?? "";
-                  int id = pelanggan['id'] as int;
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                  itemCount: dataList.length + (pelC.isLoadingMore.value ? 1 : 0),
+                  itemBuilder: (context, index) {
 
-                  String inisial = nama.trim().isNotEmpty
-                      ? nama.trim().split(' ').map((l) => l[0]).take(2).join().toUpperCase()
-                      : "?";
+                    if (index == dataList.length) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Center(
+                            child: CircularProgressIndicator(color: Colors.blue),
+                          ),
+                        );
+                      }
 
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundColor: Colors.orange.shade400,
-                          child: Text(inisial, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                        ),
-                        const SizedBox(width: 16),
+                    var pelanggan = dataList[index];
 
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    String nama = pelanggan['nama_pelanggan']?.toString() ?? "Tanpa Nama";
+                    String telepon = pelanggan['no_wa']?.toString() ?? "";
+                    int id = pelanggan['id'] as int;
+
+                    String inisial = nama.trim().isNotEmpty
+                        ? nama.trim().split(' ').map((l) => l[0]).take(2).join().toUpperCase()
+                        : "?";
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 24,
+                            backgroundColor: Colors.orange.shade400,
+                            child: Text(inisial, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                          ),
+                          const SizedBox(width: 16),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  nama, 
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43)),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  telepon.isEmpty ? "Tanpa nomor" : telepon, 
+                                  style: TextStyle(fontSize: 13, color: telepon.isEmpty ? Colors.grey.shade400 : Colors.grey.shade600)
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                nama, 
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43)),
-                                overflow: TextOverflow.ellipsis,
+                              IconButton(
+                                icon: const Icon(Icons.remove_red_eye_outlined, color: Colors.blue),
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                tooltip: "Lihat Detail",
+
+                                onPressed: () => pelC.goToDetail(nama, telepon.isEmpty ? "Tanpa nomor" : telepon, id), 
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                telepon.isEmpty ? "Tanpa nomor" : telepon, 
-                                style: TextStyle(fontSize: 13, color: telepon.isEmpty ? Colors.grey.shade400 : Colors.grey.shade600)
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined, color: Colors.orange),
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                tooltip: "Edit Pelanggan",
+
+                                onPressed: () => pelC.setEditMode(nama, telepon, id),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                tooltip: "Hapus Pelanggan",
+
+                                onPressed: () => pelC.hapusPelanggan(id, nama),
                               ),
                             ],
                           ),
-                        ),
-
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.remove_red_eye_outlined, color: Colors.blue),
-                              constraints: const BoxConstraints(),
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                              tooltip: "Lihat Detail",
-
-                              onPressed: () => pelC.goToDetail(nama, telepon.isEmpty ? "Tanpa nomor" : telepon, id), 
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.edit_outlined, color: Colors.orange),
-                              constraints: const BoxConstraints(),
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                              tooltip: "Edit Pelanggan",
-
-                              onPressed: () => pelC.setEditMode(nama, telepon, id),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.red),
-                              constraints: const BoxConstraints(),
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                              tooltip: "Hapus Pelanggan",
-
-                              onPressed: () => pelC.hapusPelanggan(id, nama),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                        ],
+                      ),
+                    );
+                  },
+                ),
               );
             }),
           ),

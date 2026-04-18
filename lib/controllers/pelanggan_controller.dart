@@ -30,6 +30,11 @@ class PelangganController extends GetxController {
   var editId = 0.obs;
 
   var sortType = 'Terbaru'.obs;
+  var totalPelanggan = 0.obs;
+  final int limit = 10;
+  var hasMore = true.obs;
+  var isLoadingMore = false.obs;
+  final ScrollController scrollController = ScrollController();
 
   void changeSort(String val) {
     sortType.value = val;
@@ -53,22 +58,71 @@ class PelangganController extends GetxController {
   void onInit() {
     super.onInit();
     fetchPelanggan();
+
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 50) {
+        loadMorePelanggan();
+      }
+    });
   }
 
   Future<void> fetchPelanggan() async {
     try {
       isLoading.value = true;
+      hasMore.value = true; 
+
+    final countData = await supabase
+          .from('customers')
+          .select('id') 
+          .eq('outlet_id', userC.outletId);
+      totalPelanggan.value = countData.length;
+
       final data = await supabase
           .from('customers')
           .select()
           .eq('outlet_id', userC.outletId)
-          .order('created_at', ascending: false);
+          .order('created_at', ascending: false)
+          .range(0, limit - 1); 
+
+      if (data.length < limit) {
+        hasMore.value = false;
+      }
 
       listPelanggan.assignAll(List<Map<String, dynamic>>.from(data));
+
+      changeSort(sortType.value); 
     } catch (e) {
       Get.snackbar("Error", "Gagal ambil data: $e");
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> loadMorePelanggan() async {
+    if (isLoadingMore.value || !hasMore.value || searchQuery.value.isNotEmpty) return;
+
+    try {
+      isLoadingMore.value = true;
+      int start = listPelanggan.length;
+      int end = start + limit - 1;
+
+      final data = await supabase
+          .from('customers')
+          .select()
+          .eq('outlet_id', userC.outletId)
+          .order('created_at', ascending: false)
+          .range(start, end);
+
+      if (data.length < limit) {
+        hasMore.value = false;
+      }
+
+      listPelanggan.addAll(List<Map<String, dynamic>>.from(data));
+      changeSort(sortType.value); 
+    } catch (e) {
+      debugPrint("Error load more pelanggan: $e");
+    } finally {
+      isLoadingMore.value = false;
     }
   }
 
@@ -284,6 +338,8 @@ class PelangganController extends GetxController {
     searchCtrl.dispose();
     namaCtrl.dispose();
     phoneCtrl.dispose();
+    scrollController.dispose(); 
+
     super.onClose();
   }
 
