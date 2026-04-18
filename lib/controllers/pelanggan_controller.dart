@@ -77,16 +77,21 @@ class PelangganController extends GetxController {
     errPhone.value = null;
   }
 
+  void clearForm() {
+    namaCtrl.clear();
+    phoneCtrl.clear();
+    isTanpaNomor.value = false;
+    clearErrors();
+  }
+
   bool hasEmoji(String text) {
     return RegExp(r'[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]', unicode: true).hasMatch(text);
   }
 
   void prepareNewForm() {
     isEdit.value = false;
-    namaCtrl.clear();
-    phoneCtrl.clear();
-    isTanpaNomor.value = false;
-    clearErrors();
+    clearForm(); 
+
     Get.to(() => TambahPelangganView());
   }
 
@@ -201,6 +206,7 @@ class PelangganController extends GetxController {
         }).eq('id', editId.value);
 
         Get.back(); 
+        clearForm(); 
 
         Get.snackbar("Sukses", "Data $nama berhasil diperbarui!", backgroundColor: Colors.green, colorText: Colors.white);
       } else {
@@ -212,6 +218,7 @@ class PelangganController extends GetxController {
         });
 
         Get.back(); 
+        clearForm(); 
 
         Get.snackbar("Sukses", "Pelanggan $nama berhasil ditambahkan!", backgroundColor: Colors.green, colorText: Colors.white);
       }
