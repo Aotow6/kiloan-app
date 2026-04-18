@@ -25,7 +25,7 @@ class ProfilView extends StatelessWidget {
                   ),
             const SizedBox(width: 8),
             const Text("kiloan",             style: TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 22)),
-            
+
           ],
         ),
       ),
@@ -71,20 +71,28 @@ class ProfilView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            
+
             _buildLabel("Nama"),
             Obx(() => _buildTextField(
               controller: profC.namaCtrl, 
               hint: "Masukkan nama",
               errorText: profC.errNama.value,
+
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
+              ],
             )),
-            
+
             const SizedBox(height: 20),
-            
+
             _buildLabel("Email"),
             Obx(() => TextField(
               controller: profC.emailCtrl,
               keyboardType: TextInputType.emailAddress,
+
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9@\.\-_]")),
+              ],
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.grey.shade50,
@@ -95,24 +103,26 @@ class ProfilView extends StatelessWidget {
                 suffixIcon: const Icon(Icons.edit_outlined, color: Colors.grey),
               ),
             )),
-            
+
             const SizedBox(height: 20),
-            
+
             _buildLabel("Telepon"),
             Obx(() => _buildTextField(
               controller: profC.teleponCtrl, 
               hint: "08123456789", 
               keyboardType: TextInputType.number,
               errorText: profC.errTelepon.value,
+
               inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(13)],
             )),
-            
+
             const SizedBox(height: 20),
-            
+
             _buildLabel("Password"),
             Obx(() => TextField(
                   controller: profC.passwordCtrl,
                   obscureText: profC.isPasswordHidden.value,
+
                   decoration: InputDecoration(
                     hintText: "Kosongkan jika tidak ingin mengubah",
                     errorText: profC.errPassword.value,
@@ -127,7 +137,7 @@ class ProfilView extends StatelessWidget {
                         onPressed: () => profC.togglePasswordVisibility()),
                   ),
                 )),
-                
+
             const SizedBox(height: 40),
           ],
         ),

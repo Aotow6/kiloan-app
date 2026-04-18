@@ -95,6 +95,11 @@ class TambahPelangganView extends StatelessWidget {
                     const SizedBox(height: 8),
                     Obx(() => TextField(
                       controller: pelangganC.namaCtrl,
+
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
+                      ],
+
                       decoration: InputDecoration(
                         hintText: "Nama Pelanggan",
                         errorText: pelangganC.errNama.value, 
@@ -123,9 +128,7 @@ class TambahPelangganView extends StatelessWidget {
 
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly, 
-
                             LengthLimitingTextInputFormatter(13), 
-
                           ],
                           decoration: InputDecoration(
                             hintText: "0812345678",

@@ -50,6 +50,10 @@ class TambahPegawaiView extends StatelessWidget {
               hint: "Masukkan nama pegawai", 
               controller: tamC.namaCtrl,
               errorText: tamC.errNama.value,
+
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
+              ],
             )),
             const SizedBox(height: 20),
 
@@ -59,6 +63,11 @@ class TambahPegawaiView extends StatelessWidget {
               controller: tamC.teleponCtrl,
               keyboardType: TextInputType.phone,
               errorText: tamC.errTelepon.value,
+
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(13),
+              ],
             )),
             const SizedBox(height: 20),
 
@@ -73,6 +82,10 @@ class TambahPegawaiView extends StatelessWidget {
                     controller: tamC.emailCtrl,
                     keyboardType: TextInputType.emailAddress,
                     errorText: tamC.errEmail.value,
+
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9@\.\-_]")),
+                    ],
                   ),
                   const SizedBox(height: 20),
 
@@ -80,6 +93,7 @@ class TambahPegawaiView extends StatelessWidget {
                   TextField(
                     controller: tamC.passwordCtrl,
                     obscureText: tamC.isPasswordHidden.value,
+
                     decoration: InputDecoration(
                       hintText: "Buat kata sandi",
                       errorText: tamC.errPassword.value,
@@ -116,15 +130,17 @@ class TambahPegawaiView extends StatelessWidget {
     required TextEditingController controller, 
     TextInputType keyboardType = TextInputType.text,
     String? errorText,
+    List<TextInputFormatter>? inputFormatters, 
+
   }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
-      inputFormatters: keyboardType == TextInputType.phone ? [FilteringTextInputFormatter.digitsOnly] : [],
+      inputFormatters: inputFormatters, 
+
       decoration: InputDecoration(
         hintText: hint,
         errorText: errorText, 
-
         hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
         filled: true,
         fillColor: Colors.grey.shade50, 

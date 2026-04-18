@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; 
 
 class CustomTextField extends StatefulWidget {
   final String hintText;
@@ -6,6 +7,7 @@ class CustomTextField extends StatefulWidget {
   final IconData? prefixIcon;
   final TextEditingController? controller; 
   final String? errorText; 
+  final List<TextInputFormatter>? inputFormatters; 
 
   const CustomTextField({
     super.key,
@@ -14,6 +16,7 @@ class CustomTextField extends StatefulWidget {
     this.prefixIcon,
     this.controller, 
     this.errorText, 
+    this.inputFormatters, 
 
   });
 
@@ -29,9 +32,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField( 
-
         controller: widget.controller, 
         obscureText: widget.isPassword ? _obscureText : false,
+        inputFormatters: widget.inputFormatters, 
+
         decoration: InputDecoration(
           hintText: widget.hintText,
           hintStyle: const TextStyle(color: Colors.grey),
@@ -54,9 +58,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           filled: true,
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
-
           errorText: widget.errorText, 
-
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30.0),
             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -65,7 +67,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
             borderRadius: BorderRadius.circular(30.0),
             borderSide: const BorderSide(color: Color(0xFF2196F3), width: 2),
           ),
-
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30.0),
             borderSide: const BorderSide(color: Colors.red, width: 1.5),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; 
+
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
@@ -54,6 +56,10 @@ class OutletView extends StatelessWidget {
                     icon: FontAwesomeIcons.shop, 
                     controller: outletC.namaCtrl,
                     errorText: outletC.errNama.value,
+
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
+                    ],
                   )),
                   const SizedBox(height: 20),
 
@@ -64,6 +70,10 @@ class OutletView extends StatelessWidget {
                     maxLines: 4, 
                     controller: outletC.alamatCtrl,
                     errorText: outletC.errAlamat.value,
+
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\'\,\/\(\)]")),
+                    ],
                   )),
                   const SizedBox(height: 24),
 
@@ -136,10 +146,13 @@ class OutletView extends StatelessWidget {
     int maxLines = 1, 
     TextEditingController? controller,
     String? errorText,
+    List<TextInputFormatter>? inputFormatters, 
   }) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
+      inputFormatters: inputFormatters, 
+
       decoration: InputDecoration(
         hintText: hint,
         errorText: errorText, 
@@ -185,4 +198,4 @@ class OutletView extends StatelessWidget {
       ),
     );
   }
-} 
+}
