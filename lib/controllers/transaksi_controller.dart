@@ -64,21 +64,34 @@ class TransaksiController extends GetxController {
   void showOngkirDialog(BuildContext context) {
     final ongkirCtrl = TextEditingController(text: deliveryFee.value == 0 ? "" : deliveryFee.value.toString());
     Get.dialog(Dialog(
+        backgroundColor: Colors.white, 
+
+        surfaceTintColor: Colors.transparent, 
+
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text("Atur Ongkos Kirim", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const Text("Atur Ongkos Kirim", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF102A43))),
               const SizedBox(height: 20),
               TextField(
                 controller: ongkirCtrl,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly, CurrencyFormat()],
-                decoration: const InputDecoration(prefixText: "Rp ", border: OutlineInputBorder(), hintText: "Contoh: 5.000"),
+                decoration: InputDecoration(
+                  prefixText: "Rp ", 
+                  prefixStyle: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.blue, width: 2)),
+                  hintText: "Contoh: 5.000",
+                  hintStyle: TextStyle(color: Colors.grey.shade400)
+                ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -86,7 +99,14 @@ class TransaksiController extends GetxController {
                     deliveryFee.value = int.tryParse(ongkirCtrl.text.replaceAll('.', '')) ?? 0;
                     Get.back();
                   },
-                  child: const Text("Simpan"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2196F3), 
+
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  ),
+                  child: const Text("Simpan", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
               )
             ],
