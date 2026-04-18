@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:share_whatsapp/share_whatsapp.dart'; 
+
 import '../controllers/pelanggan_controller.dart';
 
 class DetailPelangganView extends StatelessWidget {
@@ -18,6 +20,12 @@ class DetailPelangganView extends StatelessWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       pelC.fetchDetailPelanggan(id);
     });
+
+    bool hasWa = phone.isNotEmpty && phone.toLowerCase() != "tanpa nomor";
+    String cleanPhone = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanPhone.startsWith('0')) {
+      cleanPhone = '62${cleanPhone.substring(1)}';
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -63,9 +71,24 @@ class DetailPelangganView extends StatelessWidget {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green),
-                        const SizedBox(width: 15),
-                        Icon(Icons.phone, color: Colors.red.shade400),
+
+                        if (hasWa) ...[
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, size: 28),
+                            onPressed: () async {
+                              bool? isInstalled = await shareWhatsapp.installed();
+                              if (isInstalled == true) {
+                                await shareWhatsapp.share(phone: cleanPhone, text: "Halo kak *$nama*,\n");
+                              } else {
+                                Get.snackbar("Error", "WhatsApp tidak terdeteksi di HP ini", backgroundColor: Colors.red, colorText: Colors.white);
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 16),
+                        ],
+                        // Icon(Icons.phone, color: Colors.red.shade400),
                       ],
                     ),
                   ),
@@ -75,10 +98,8 @@ class DetailPelangganView extends StatelessWidget {
                     titleColor: Colors.orange.shade700,
                     child: Row(
                       children: [
-
                         _buildFinancialItem("Kasbon", "Rp ${pelC.formatRupiahLokal(pelC.detailKasbon.value)}"),
                         const VerticalDivider(thickness: 1, color: Colors.grey),
-
                         _buildFinancialItem("Piutang", "Rp ${pelC.formatRupiahLokal(pelC.detailPiutang.value)}"),
                       ],
                     ),
@@ -96,14 +117,6 @@ class DetailPelangganView extends StatelessWidget {
                         const Divider(),
                         _buildTransactionRow("Transaksi Pertama", pelC.detailTransaksiPertama.value),
                         _buildTransactionRow("Transaksi Terakhir", pelC.detailTransaksiTerakhir.value),
-                        const SizedBox(height: 10),
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Text("Lihat Semua", style: TextStyle(fontWeight: FontWeight.bold)),
-                            // Icon(Icons.chevron_right),
-                          ],
-                        )
                       ],
                     ),
                   ),
@@ -130,9 +143,7 @@ class DetailPelangganView extends StatelessWidget {
               color: Colors.white,
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-
-                },
+                onPressed: () => pelC.validasiDanLanjutOrder(nama, phone, id),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange.shade600,
                   padding: const EdgeInsets.symmetric(vertical: 16),

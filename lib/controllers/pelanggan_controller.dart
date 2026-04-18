@@ -7,6 +7,7 @@ import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart
 import 'user_controller.dart';
 import '../views/detail_pelanggan_view.dart';
 import '../views/tambah_pelanggan_view.dart';
+import '../views/pilih_layanan_view.dart';
 
 class PelangganController extends GetxController {
   final supabase = Supabase.instance.client;
@@ -364,5 +365,67 @@ class PelangganController extends GetxController {
 
   String formatRupiahLokal(int amount) {
     return amount.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+  }
+
+    Future<void> validasiDanLanjutOrder(String nama, String phone, int id) async {
+    try {
+
+      Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
+
+      final outletData = await supabase
+          .from('outlets')
+          .select('alamat, jam_buka, jam_tutup')
+          .eq('id', userC.outletId)
+          .single();
+
+      if (outletData['alamat'] == null || outletData['alamat'].toString().trim().isEmpty ||
+          outletData['jam_buka'] == null || outletData['jam_buka'].toString().trim().isEmpty ||
+          outletData['jam_tutup'] == null || outletData['jam_tutup'].toString().trim().isEmpty) {
+
+        Get.back(); 
+
+        Get.snackbar(
+          "Tahan Dulu! 🛑",
+          "Profil Outlet belum lengkap! Silakan minta Owner melengkapi Alamat dan Jam Operasional di menu Pengaturan.",
+          backgroundColor: Colors.red.shade700,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 4),
+        );
+        return; 
+
+      }
+
+      final layananData = await supabase
+          .from('services')
+          .select('id')
+          .eq('outlet_id', userC.outletId)
+          .limit(1);
+
+      if (layananData.isEmpty) {
+        Get.back(); 
+
+        Get.snackbar(
+          "Layanan Kosong! 🛑",
+          "Belum ada satupun layanan (cuci/setrika). Silakan buat minimal 1 layanan di menu Pengaturan.",
+          backgroundColor: Colors.red.shade700,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 4),
+        );
+        return; 
+
+      }
+
+      Get.back(); 
+
+      Get.to(() => PilihLayananView(
+            namaCustomer: nama,
+            idCustomer: id, 
+            noHp: phone,
+          ));
+
+    } catch (e) {
+      Get.back(); 
+      Get.snackbar("Error", "Gagal memvalidasi data: $e", backgroundColor: Colors.red, colorText: Colors.white);
+    }
   }
 }

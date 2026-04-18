@@ -18,16 +18,37 @@ class KelolaPegawaiView extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back, color: Color(0xFF102A43)), onPressed: () => Get.back()),
-        title: const Text("Kelola Pegawai", style: TextStyle(color: Color(0xFF102A43), fontWeight: FontWeight.bold)),
+
+        title: Obx(() => pegC.isSearching.value 
+            ? TextField(
+                autofocus: true,
+                onChanged: (val) => pegC.searchQuery.value = val,
+                decoration: const InputDecoration(
+                  hintText: "Cari nama atau nomor...",
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(color: Colors.grey)
+                ),
+                style: const TextStyle(color: Color(0xFF102A43), fontSize: 16),
+              )
+            : const Text("Kelola Pegawai", style: TextStyle(color: Color(0xFF102A43), fontWeight: FontWeight.bold))
+        ),
         actions: [
-          IconButton(icon: const Icon(Icons.search, color: Color(0xFF102A43)), onPressed: () {}),
+          Obx(() => IconButton(
+            icon: Icon(pegC.isSearching.value ? Icons.close : Icons.search, color: const Color(0xFF102A43)), 
+            onPressed: () {
+              pegC.isSearching.value = !pegC.isSearching.value;
+              if (!pegC.isSearching.value) {
+                pegC.searchQuery.value = ""; 
+
+              }
+            }
+          )),
         ],
       ),
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF2196F3),
         onPressed: () {
-
           final tamC = Get.put(TambahPegawaiController());
           tamC.clearForm();
           Get.to(() => TambahPegawaiView());
@@ -40,7 +61,9 @@ class KelolaPegawaiView extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (pegC.listPegawai.isEmpty) {
+        var dataPegawai = pegC.filteredPegawai;
+
+        if (dataPegawai.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -55,9 +78,9 @@ class KelolaPegawaiView extends StatelessWidget {
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
-          itemCount: pegC.listPegawai.length,
+          itemCount: dataPegawai.length,
           itemBuilder: (context, index) {
-            var pegawai = pegC.listPegawai[index];
+            var pegawai = dataPegawai[index];
             bool isActive = pegawai['status_aktif'] as bool? ?? false;
             String nama = pegawai['nama_lengkap']?.toString() ?? "Tanpa Nama";
             String noHp = pegawai['no_hp']?.toString() ?? "-";
@@ -103,7 +126,6 @@ class KelolaPegawaiView extends StatelessWidget {
                         icon: const Icon(Icons.edit_outlined, color: Colors.orange),
                         constraints: const BoxConstraints(),
                         padding: const EdgeInsets.symmetric(horizontal: 4),
-
                         onPressed: () => pegC.goToEdit(pegawai),
                       ),
                       IconButton(

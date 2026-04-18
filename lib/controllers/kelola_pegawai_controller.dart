@@ -11,11 +11,21 @@ class KelolaPegawaiController extends GetxController {
 
   var listPegawai = <Map<String, dynamic>>[].obs;
   var isLoading = false.obs;
+  var isSearching = false.obs;
+  var searchQuery = "".obs;
 
   @override
   void onInit() {
     super.onInit();
     if (userC.outletId != null) fetchPegawai();
+  }
+
+  List<Map<String, dynamic>> get filteredPegawai {
+    if (searchQuery.value.isEmpty) return listPegawai;
+    return listPegawai.where((p) {
+      return (p['nama_lengkap'] ?? '').toString().toLowerCase().contains(searchQuery.value.toLowerCase()) || 
+             (p['no_hp'] ?? '').toString().contains(searchQuery.value);
+    }).toList();
   }
 
   Future<void> fetchPegawai() async {
