@@ -18,9 +18,9 @@
 Dengan dukungan backend Supabase, aplikasi ini mampu mengelola data secara *real-time* serta menjaga integritas data melalui sistem database relasional. Aplikasi juga dirancang dengan konsep *multi-outlet*, sehingga dapat digunakan oleh lebih dari satu cabang dalam satu sistem yang sama.
 
 
-## 🤝 Profil Mitra: Laundry ...
+## 🤝 Profil Mitra: Yuni Laundry
 
-**[Nama Laundry Mitra]** adalah mitra bisnis sekaligus latar belakang langsung pengembangan aplikasi Laundry App ini. Usaha ini beroperasi di **[Alamat/Jalan lokasi laundry]** yang menawarkan layanan cuci setrika kiloan dan satuan. Konsepnya berfokus pada pelayanan cepat dan bersih bagi warga sekitar. Ceritanya berawal dari peluang usaha di kawasan yang padat penduduk, di mana banyak mahasiswa dan pekerja kantoran yang tidak memiliki waktu untuk mencuci pakaian mereka sendiri. Operasional toko ini dimulai pada **[Tanggal/Bulan/Tahun didirikan]**.
+**Yuni Laundry** adalah mitra bisnis sekaligus latar belakang langsung pengembangan aplikasi Laundry App ini. Usaha ini beroperasi di **JL. Suwandi, Gn.Kelua, samarinda Ulu, kota Samarinda** yang menawarkan layanan cuci setrika kiloan dan satuan. Konsepnya berfokus pada pelayanan cepat dan bersih bagi warga sekitar. Ceritanya berawal dari peluang usaha di kawasan yang padat penduduk, di mana banyak mahasiswa dan pekerja kantoran yang tidak memiliki waktu untuk mencuci pakaian mereka sendiri. Operasional toko ini dimulai pada **sejak 12 tahun yang lalu**.
 
 Menurut pemilik, mengelola bisnis jasa laundry memiliki tantangan yang berbeda, terutama dalam hal **pencatatan dan pelacakan barang pelanggan**. Seringkali terjadi risiko nota hilang atau pakaian tertukar jika hanya mengandalkan pencatatan manual di buku tulis. Di awal operasional, pemilik sempat kewalahan mengatur jadwal selesai cucian saat pesanan sedang menumpuk. Oleh karena itu, dibutuhkan sebuah sistem pencatatan digital yang mandiri untuk menjaga kepercayaan pelanggan.
 
