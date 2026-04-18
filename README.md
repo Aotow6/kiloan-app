@@ -1,17 +1,33 @@
 # 🧺 Laundry Kiloan
 *Digital Laundry Management System*
 
-## 👥Nama Anggota Tim:
 
-- 👤Shafa Rizqi Nur Wahidah (2409116041)
-- 👤Rabiatul Hikmah (2409116049)
-- 👤Nayla Lelyanggraheni Hutomo (2409116061)
-- 👤Satria Rajawali Ektya Antara (2409116067)
+## 👥 Profil Kelompok: [Nama Kelompok Kalian]
+
+| NIM | Nama | Program Studi / Kelas |
+| :--- | :--- | :--- |
+| 2409116041 | Shafa Rizqi Nur Wahidah | Sistem Informasi |
+| 2409116049 | Rabiatul Hikmah | Sistem Informasi  |
+| 2409116061 | Nayla Lelyanggraheni Hutomo | Sistem Informasi |
+| 2409116067 | Satria Rajawali Ektya Antara | Sistem Informasi  |
+
 
 ## 📖 Deskripsi Aplikasi
 **Laundry Kiloan** adalah aplikasi berbasis mobile yang dikembangkan menggunakan Flutter sebagai solusi digital untuk operasional bisnis laundry modern. Aplikasi ini dirancang untuk menggantikan sistem pencatatan manual menjadi sistem terintegrasi yang cepat, akurat, dan profesional.
 
 Dengan dukungan backend Supabase, aplikasi ini mampu mengelola data secara *real-time* serta menjaga integritas data melalui sistem database relasional. Aplikasi juga dirancang dengan konsep *multi-outlet*, sehingga dapat digunakan oleh lebih dari satu cabang dalam satu sistem yang sama.
+
+
+## 🤝 Profil Mitra: Yuni Laundry
+
+**Yuni Laundry** adalah mitra bisnis sekaligus latar belakang langsung pengembangan aplikasi Laundry App ini. Usaha ini beroperasi di **JL. Suwandi, Gn.Kelua, samarinda Ulu, kota Samarinda** yang menawarkan layanan cuci setrika kiloan dan satuan. Konsepnya berfokus pada pelayanan cepat dan bersih bagi warga sekitar. Ceritanya berawal dari peluang usaha di kawasan yang padat penduduk, di mana banyak mahasiswa dan pekerja kantoran yang tidak memiliki waktu untuk mencuci pakaian mereka sendiri. Operasional toko ini dimulai pada **sejak 12 tahun yang lalu**.
+
+Menurut pemilik, mengelola bisnis jasa laundry memiliki tantangan yang berbeda, terutama dalam hal **pencatatan dan pelacakan barang pelanggan**. Seringkali terjadi risiko nota hilang atau pakaian tertukar jika hanya mengandalkan pencatatan manual di buku tulis. Di awal operasional, pemilik sempat kewalahan mengatur jadwal selesai cucian saat pesanan sedang menumpuk. Oleh karena itu, dibutuhkan sebuah sistem pencatatan digital yang mandiri untuk menjaga kepercayaan pelanggan.
+
+Penjualan di bisnis ini juga sangat dipengaruhi oleh **musim dan kalender**. Pada musim penghujan, jumlah pelanggan biasanya melonjak drastis karena banyak orang kesulitan menjemur pakaian. Begitu juga saat musim liburan atau awal semester bagi mahasiswa. Saat ini, pemilik masih **ikut campur langsung** dalam operasional harian untuk memastikan *quality control* dan meminimalisir kelalaian pegawai. Pemilik berpendapat bahwa sistem digitalisasi kasir (POS) sangat penting di fase ini agar pengawasan omzet dan kinerja pegawai bisa dipantau secara transparan tanpa harus selalu berada di toko.
+
+*Ringkasan ini bersumber dari wawancara dengan pemilik [Nama Laundry Mitra] pada 21 februari 2026.*
+
 
 
 ## 🎯 Tujuan Pengembangan
@@ -24,46 +40,37 @@ Dengan dukungan backend Supabase, aplikasi ini mampu mengelola data secara *real
 | **Keamanan Data**| Data tersimpan aman di database *cloud* |
 
 
-## 🚀 Fitur Aplikasi
+## 🚀 Fitur Utama
 
-### 👤 Manajemen Pelanggan
-* Menambahkan pelanggan baru
-* Menyimpan data pelanggan (nama & nomor WhatsApp)
-* Pencarian pelanggan secara *real-time*
-* Detail informasi pelanggan
+![Auth](https://img.shields.io/badge/Auth-Supabase-10b981?style=flat-square)
+![Peran](https://img.shields.io/badge/Peran-Owner%20%7C%20Kasir-4b5563?style=flat-square)
+![POS](https://img.shields.io/badge/POS-Pencatatan%20Transaksi-ef4444?style=flat-square)
+![Backend](https://img.shields.io/badge/Backend-Supabase-10b981?style=flat-square)
 
-### 🧾 Sistem Transaksi (Point of Sale)
-* Membuat transaksi laundry
-* Mendukung *multi-item* dalam satu nota
-* Perhitungan otomatis total harga
-* Integrasi langsung dengan layanan
-
-### 🧺 Manajemen Layanan
-* Menambah & mengedit layanan
-* Kategori layanan (kiloan / satuan)
-* Harga dan durasi pengerjaan
-
-### 🔄 Tracking Status Cucian
-| Status | Deskripsi |
+| Fitur | Keterangan |
 | :--- | :--- |
-| **Proses** | Sedang dikerjakan |
-| **Selesai** | Siap diambil |
-| **Diambil** | Sudah diterima pelanggan |
-| **Batal** | Transaksi dibatalkan |
+| **Autentikasi & sesi** | Login, pendaftaran akun kasir, pengelolaan sesi aman |
+| **Dashboard** | Ringkasan omzet dan transaksi, pintu masuk ke modul utama |
+| **POS / Kasir** | Buat pesanan baru, pemilihan layanan, hitung total otomatis, dan pembayaran |
+| **Layanan & Pelanggan**| CRUD data layanan (kiloan/satuan) dan direktori data pelanggan |
+| **Laporan** | Laporan pendapatan dan arus kas per rentang waktu tertentu |
+| **Karyawan** | Kelola data karyawan/kasir dengan pembatasan hak akses untuk non-owner |
+| **Tracking Cucian** | Pembaruan status operasional cucian (Proses, Selesai, Diambil) |
+| **Pengaturan pengguna**| Ubah profil, ganti email, reset password, dan pengaturan terkait akun |
 
-### 💳 Sistem Pembayaran
-* Mendukung pencatatan multi-metode pembayaran (Tunai, Non-Tunai/Transfer Bank, dan E-Wallet)
-* Pencatatan spesifik vendor pembayaran (BCA, BRI, Mandiri, dll) 
-* Status pembayaran (Lunas / Belum Lunas)
-* Perhitungan total tagihan secara otomatis
+---
 
-### 🏪 Multi Outlet System
-* Setiap data terhubung ke `outlet_id`
-* Mendukung banyak cabang dalam satu database
+## 🧩 Widget dan Komponen
 
-### 🔐 Autentikasi User
-* Login & *session management*
-* Identifikasi pegawai berdasarkan `user_id`
+| Kategori | Widget / pola | Peran dalam aplikasi |
+| :--- | :--- | :--- |
+| **Layout** | `Scaffold`, `SafeArea`, `SingleChildScrollView`, `ListView`, `Column`, `Row`, `Expanded` | Kerangka halaman, daftar pesanan, layout dashboard |
+| **Material** | `AppBar`, `Card`, `ListTile`, `CircleAvatar`, `Divider`, `BottomNavigationBar` | Pola UI yang konsisten, desain kartu informasi |
+| **Input** | `TextField`, `TextFormField`, `DropdownButton`, `TextEditingController` | Form login, input data pelanggan, produk, transaksi |
+| **Interaksi** | `InkWell`, `GestureDetector`, `IconButton`, `ElevatedButton`, `OutlinedButton` | Aksi sentuhan (*tap*), navigasi, tombol konfirmasi |
+| **State & Navigasi** | `Obx`, `Get.put()`, `Get.to()`, `Get.snackbar()`, `BottomSheet` | Manajemen *state* reaktif (GetX), *routing*, dan *feedback* UI |
+
+---
 
 
 ## 🧠 Arsitektur Sistem
@@ -86,18 +93,49 @@ Dengan dukungan backend Supabase, aplikasi ini mampu mengelola data secara *real
 * *Delivery fee logic*
 
 
-## 🧩 Widget yang Digunakan
-
-* **Layout:** `Scaffold`, `AppBar`, `Container`, `Column` / `Row`, `Expanded`, `Padding`
-* **Input:** `TextField`, `DropdownButton`, `TextEditingController`
-* **Data Display:** `ListView`, `ListView.builder`, `ListTile`, `CircleAvatar`
-* **Navigasi (GetX):** `GetMaterialApp`, `GetPage`, `Get.to()`, `Get.back()`
-* **State Management:** `Obx`, `.obs`, `Get.put()`, `Get.find()`
-* **Feedback UI:** `ElevatedButton`, `OutlinedButton`, `IconButton`, `Get.snackbar()`, `CircularProgressIndicator`
-
-
 
 ## 🗂️ Struktur Folder Project
+
+Proyek ini menggunakan pola arsitektur MVC (Model-View-Controller) yang diadaptasi untuk **GetX State Management** agar kodenya rapi dan mudah di-*maintenance*:
+<details>
+<summary><b>Struktur folder </b></summary>
+
+<br>
+
+
+```text
+lib/
+│
+├── controllers/            # Berisi logika bisnis dan state management
+│   ├── auth_controller.dart
+│   ├── pelanggan_controller.dart
+│   ├── layanan_controller.dart
+│   ├── transaksi_controller.dart
+│   ├── laporan_controller.dart
+│   └── user_controller.dart
+│
+├── models/                 # Struktur data / Blueprint objek
+│   ├── user_model.dart
+│   └── outlet_model.dart
+│
+├── views/                  # UI / Tampilan halaman aplikasi
+│   ├── login_view.dart
+│   ├── home_view.dart
+│   │
+│   ├── pelanggan/          # Modul Pelanggan
+│   │   └── ...
+│   ├── transaksi/          # Modul Kasir & POS
+│   │   └── ...
+│   └── admin/              # Modul Owner / Pengaturan
+│       └── ...
+│
+├── widgets/                # Komponen UI yang bisa dipakai berulang (Reusable)
+│   ├── navbar.dart
+│   └── header_curve.dart
+│
+└── main.dart               # Entry point aplikasi & inisialisasi Supabase/GetX
+```
+</details>
 
 
 ## 🛠️ Teknologi yang Digunakan
@@ -110,9 +148,10 @@ Dengan dukungan backend Supabase, aplikasi ini mampu mengelola data secara *real
 | PostgreSQL | Database |
 | Dart | Bahasa pemrograman |
 
----
-## 🖼️ Tampilan Aplikasi
 
+
+
+## 🖼️ Tampilan Aplikasi
 
 
 ### 🔐 Login
