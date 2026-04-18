@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; 
-
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
 import 'widgets/custom_textfield.dart';
@@ -30,7 +29,6 @@ class RegisterView extends StatelessWidget {
                     prefixIcon: Icons.person_outline, 
                     controller: authC.namaLengkapCtrl,
                     errorText: authC.errNamaLengkap.value,
-
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
                     ],
@@ -40,17 +38,27 @@ class RegisterView extends StatelessWidget {
                     prefixIcon: Icons.storefront_outlined, 
                     controller: authC.namaLaundryCtrl,
                     errorText: authC.errNamaLaundry.value,
-
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
                     ],
                   )),
+
+                  Obx(() => CustomTextField(
+                    hintText: 'Nomor Telepon ', 
+                    prefixIcon: Icons.phone_outlined, 
+                    controller: authC.noTelpRegisCtrl, 
+                    errorText: authC.errNoTelpRegis.value,
+
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                  )),
+
                   Obx(() => CustomTextField(
                     hintText: 'Email', 
                     prefixIcon: Icons.email_outlined, 
                     controller: authC.emailRegisCtrl,
                     errorText: authC.errEmailRegis.value,
-
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\@\.\-\_]")),
                     ],
@@ -61,7 +69,6 @@ class RegisterView extends StatelessWidget {
                     prefixIcon: Icons.lock_outline, 
                     controller: authC.passwordRegisCtrl,
                     errorText: authC.errPasswordRegis.value,
-
                   )),
                   Obx(() => CustomTextField(
                     hintText: 'Konfirmasi Password', 
@@ -69,7 +76,6 @@ class RegisterView extends StatelessWidget {
                     prefixIcon: Icons.lock_outline, 
                     controller: authC.confirmPasswordCtrl,
                     errorText: authC.errConfirmPassword.value,
-
                   )),
 
                   const SizedBox(height: 30),

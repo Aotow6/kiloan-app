@@ -9,25 +9,26 @@ class AuthController extends GetxController {
   var isPemilik = true.obs;
   var isLoading = false.obs;
 
-  // --- CONTROLLER INPUT ---
   final emailLoginCtrl = TextEditingController();
   final passwordLoginCtrl = TextEditingController();
   final resetEmailCtrl = TextEditingController();
 
   final namaLengkapCtrl = TextEditingController();
   final namaLaundryCtrl = TextEditingController();
+
+  final noTelpRegisCtrl = TextEditingController();
   final emailRegisCtrl = TextEditingController();
   final passwordRegisCtrl = TextEditingController();
   final confirmPasswordCtrl = TextEditingController();
 
-  // --- STATE PESAN ERROR REGISTRASI ---
   var errNamaLengkap = RxnString();
   var errNamaLaundry = RxnString();
+
+  var errNoTelpRegis = RxnString();
   var errEmailRegis = RxnString();
   var errPasswordRegis = RxnString();
   var errConfirmPassword = RxnString();
 
-  // --- STATE PESAN ERROR LOGIN ---
   var errEmailLogin = RxnString();
   var errPasswordLogin = RxnString();
 
@@ -43,6 +44,8 @@ class AuthController extends GetxController {
   void clearErrors() {
     errNamaLengkap.value = null;
     errNamaLaundry.value = null;
+    errNoTelpRegis.value = null; 
+
     errEmailRegis.value = null;
     errPasswordRegis.value = null;
     errConfirmPassword.value = null;
@@ -50,7 +53,6 @@ class AuthController extends GetxController {
     errPasswordLogin.value = null; 
   }
 
-  // ================= LOGIN =================
    Future<void> login() async {
     clearErrors();
     bool isValid = true;
@@ -134,13 +136,15 @@ class AuthController extends GetxController {
       isLoading.value = false;
     }
   }
-  // ================= REGISTER =================
+
   Future<void> register() async {
     clearErrors(); 
     bool isValid = true;
 
     String nama = namaLengkapCtrl.text.trim();
     String laundry = namaLaundryCtrl.text.trim();
+    String noTelp = noTelpRegisCtrl.text.trim(); 
+
     String email = emailRegisCtrl.text.trim();
     String pass = passwordRegisCtrl.text.trim();
     String confirmPass = confirmPasswordCtrl.text.trim();
@@ -170,6 +174,18 @@ class AuthController extends GetxController {
       isValid = false;
     } else if (hasEmoji(laundry)) {
       errNamaLaundry.value = "Nama laundry tidak boleh menggunakan emoji";
+      isValid = false;
+    }
+
+    if (noTelp.isEmpty) {
+      errNoTelpRegis.value = "Nomor telepon wajib diisi";
+      isValid = false;
+    } else if (noTelp.length < 12 || noTelp.length > 13) {
+      errNoTelpRegis.value = "Nomor telepon tidak valid (12-13 digit)";
+      isValid = false;
+    }
+      else if (!noTelp.startsWith('08')) {
+      errNoTelpRegis.value = "Nomor telepon harus dimulai dengan 08";
       isValid = false;
     }
 
@@ -216,6 +232,8 @@ class AuthController extends GetxController {
           'id': authRes.user!.id,
           'outlet_id': outletRes['id'],
           'nama_lengkap': nama,
+          'no_hp': noTelp, 
+
           'role': 'owner',
           'status_aktif': true,
         });
@@ -236,7 +254,6 @@ class AuthController extends GetxController {
     }
   }
 
-  // ================= RESET PASSWORD =================
   Future<void> kirimResetPassword() async {
     if (resetEmailCtrl.text.isEmpty) {
       Get.snackbar("Error", "Masukkan email kamu dulu", backgroundColor: Colors.red, colorText: Colors.white);
@@ -264,6 +281,8 @@ class AuthController extends GetxController {
     resetEmailCtrl.dispose();
     namaLengkapCtrl.dispose();
     namaLaundryCtrl.dispose();
+    noTelpRegisCtrl.dispose(); 
+
     emailRegisCtrl.dispose();
     passwordRegisCtrl.dispose();
     confirmPasswordCtrl.dispose();
