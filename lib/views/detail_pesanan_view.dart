@@ -64,8 +64,11 @@ class DetailPesananView extends StatelessWidget {
           );
 
           bool isLocked = h['status_pesanan'].toString().toLowerCase() == 'diambil' || h['status_pesanan'].toString().toLowerCase() == 'batal';
+          bool isBatal = h['status_pesanan'].toString().toLowerCase() == 'batal';
           bool isLunas = h['status_pembayaran'].toString().toLowerCase() == 'lunas';
           bool isBon = h['status_pembayaran'].toString().toLowerCase() == 'bon';
+
+          bool isOwner = pesananC.isOwner;
 
           return Container(
             padding: const EdgeInsets.all(16),
@@ -73,137 +76,163 @@ class DetailPesananView extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (!isLunas && !isLocked) ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        if (isBon) {
-                           final payC = Get.put(PembayaranController());
-                           payC.totalTagihan.value = h['total_tagihan'] ?? 0;
-                           payC.idTransaksi.value = h['id'] ?? 0;
-                           payC.idCustomer.value = h['customer_id'] ?? 0;
-                           Get.to(() => PembayaranView());
-                        } else {
-                          Get.bottomSheet(
-                            Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text("Pilih Metode", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                  const SizedBox(height: 20),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        Get.back(); 
-                                        final payC = Get.put(PembayaranController());
-                                        payC.totalTagihan.value = h['total_tagihan'] ?? 0;
-                                        payC.idTransaksi.value = h['id'] ?? 0;
-                                        payC.idCustomer.value = h['customer_id'] ?? 0;
-                                        Get.to(() => PembayaranView());
-                                      },
-                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(vertical: 14)),
-                                      child: const Text("Bayar Lunas Sekarang", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                    SizedBox(
-                                    width: double.infinity,
-                                    child: OutlinedButton(
-                                      onPressed: () {
-                                        Get.defaultDialog(
-                                          title: "Jadikan Bon?",
-                                          middleText: "Tagihan Rp ${_formatRupiah(h['total_tagihan'] ?? 0)} akan masuk ke hutang pelanggan.",
-                                          textConfirm: "Ya, Jadikan Bon",
-                                          confirmTextColor: Colors.white,
-                                          textCancel: "Batal",
-                                          onConfirm: () {
-                                            detailC.prosesJadikanBon(h['id'], h['customer_id'], h['total_tagihan']);
-                                          }
-                                        );
-                                      },
-                                      style: OutlinedButton.styleFrom(foregroundColor: Colors.orange, side: const BorderSide(color: Colors.orange), padding: const EdgeInsets.symmetric(vertical: 14)),
-                                      child: const Text("Masukkan Ke Kasbon", style: TextStyle(fontWeight: FontWeight.bold)),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            )
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.payments_outlined, color: Colors.white),
-                      label: Text(isBon ? "LUNASI BON (HUTANG)" : "PROSES PEMBAYARAN", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isBon ? Colors.orange.shade700 : const Color(0xFFFF9800),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+
+                if (isBatal) ...[
+
+                  if (isOwner)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => pesananC.hapusTransaksiPermanen(h['id']),
+                        icon: const Icon(Icons.delete_forever, color: Colors.white),
+                        label: const Text("HAPUS TRANSAKSI", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red.shade700,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-
-                if (!isLocked) ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () => pesananC.batalkanPesanan(h['id'], isLunas, h['total_dibayar']),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red, side: const BorderSide(color: Colors.red),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                      ),
-                      child: const Text("BATALKAN PESANAN", style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if(h['status_pesanan'].toString().toLowerCase() == 'proses') {
-                           detailC.updateStatus(h['id'], 'selesai');
-                        } else if (h['status_pesanan'].toString().toLowerCase() == 'selesai') {
-
-                           if (!isLunas && !isBon) {
-                             Get.snackbar(
-                               "Tahan Dulu!", 
-                               "Pesanan belum dibayar. Silakan proses pembayaran atau jadikan Kasbon (Bon) terlebih dahulu sebelum barang diambil.",
-                               backgroundColor: Colors.red.shade700,
-                               colorText: Colors.white,
-                               duration: const Duration(seconds: 4),
-                             );
-                             return; 
-
-                           }
-
-                           detailC.updateStatus(h['id'], 'diambil');
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: h['status_pesanan'].toString().toLowerCase() == 'selesai' ? Colors.green : const Color(0xFF2196F3),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                      ),
-                      child: Text(h['status_pesanan'].toString().toLowerCase() == 'selesai' ? "SUDAH DIAMBIL" : "SELESAIKAN PROSES", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                    ),
-                  ),
+                    )
+                  else
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(30)),
+                      child: Center(child: Text("Pesanan DIBATALKAN", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red.shade700))),
+                    )
                 ] else ...[
-                   Container(
-                     width: double.infinity,
-                     padding: const EdgeInsets.symmetric(vertical: 14),
-                     decoration: BoxDecoration(
-                       color: Colors.grey.shade200,
-                       borderRadius: BorderRadius.circular(30)
-                     ),
-                     child: Center(
-                       child: Text("Pesanan ${h['status_pesanan'].toString().toUpperCase()}", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                     ),
-                   )
+
+                  if (!isLunas || isBon) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          if (isBon) {
+                             final payC = Get.put(PembayaranController());
+                             payC.totalTagihan.value = h['total_tagihan'] ?? 0;
+                             payC.idTransaksi.value = h['id'] ?? 0;
+                             payC.idCustomer.value = h['customer_id'] ?? 0;
+                             Get.to(() => PembayaranView());
+                          } else {
+                            Get.bottomSheet(
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text("Pilih Metode", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                    const SizedBox(height: 20),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          Get.back(); 
+                                          final payC = Get.put(PembayaranController());
+                                          payC.totalTagihan.value = h['total_tagihan'] ?? 0;
+                                          payC.idTransaksi.value = h['id'] ?? 0;
+                                          payC.idCustomer.value = h['customer_id'] ?? 0;
+                                          Get.to(() => PembayaranView());
+                                        },
+                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(vertical: 14)),
+                                        child: const Text("Bayar Lunas Sekarang", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                      SizedBox(
+                                      width: double.infinity,
+                                      child: OutlinedButton(
+                                        onPressed: () {
+                                          Get.defaultDialog(
+                                            title: "Jadikan Bon?",
+                                            middleText: "Tagihan Rp ${_formatRupiah(h['total_tagihan'] ?? 0)} akan masuk ke hutang pelanggan.",
+                                            textConfirm: "Ya, Jadikan Bon",
+                                            confirmTextColor: Colors.white,
+                                            textCancel: "Batal",
+                                            onConfirm: () {
+                                              detailC.prosesJadikanBon(h['id'], h['customer_id'], h['total_tagihan']);
+                                            }
+                                          );
+                                        },
+                                        style: OutlinedButton.styleFrom(foregroundColor: Colors.orange, side: const BorderSide(color: Colors.orange), padding: const EdgeInsets.symmetric(vertical: 14)),
+                                        child: const Text("Masukkan Ke Kasbon", style: TextStyle(fontWeight: FontWeight.bold)),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              )
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.payments_outlined, color: Colors.white),
+                        label: Text(isBon ? "LUNASI BON (HUTANG)" : "PROSES PEMBAYARAN", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isBon ? Colors.orange.shade700 : const Color(0xFFFF9800),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+
+                  if (!isLocked) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () => pesananC.batalkanPesanan(h['id'], isLunas, h['total_dibayar']),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red, side: const BorderSide(color: Colors.red),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        ),
+                        child: const Text("BATALKAN PESANAN", style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if(h['status_pesanan'].toString().toLowerCase() == 'proses') {
+                             detailC.updateStatus(h['id'], 'selesai');
+                          } else if (h['status_pesanan'].toString().toLowerCase() == 'selesai') {
+
+                             if (!isLunas && !isBon) {
+                               Get.snackbar(
+                                 "Tahan Dulu!", 
+                                 "Pesanan belum dibayar. Silakan proses pembayaran atau jadikan Kasbon (Bon) terlebih dahulu sebelum barang diambil.",
+                                 backgroundColor: Colors.red.shade700,
+                                 colorText: Colors.white,
+                                 duration: const Duration(seconds: 4),
+                               );
+                               return; 
+                             }
+
+                             detailC.updateStatus(h['id'], 'diambil');
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: h['status_pesanan'].toString().toLowerCase() == 'selesai' ? Colors.green : const Color(0xFF2196F3),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        ),
+                        child: Text(h['status_pesanan'].toString().toLowerCase() == 'selesai' ? "SUDAH DIAMBIL" : "SELESAIKAN PROSES", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                      ),
+                    ),
+                  ] else if (isLocked && !isBon) ...[
+                     Container(
+                       width: double.infinity,
+                       padding: const EdgeInsets.symmetric(vertical: 14),
+                       decoration: BoxDecoration(
+                         color: Colors.grey.shade200,
+                         borderRadius: BorderRadius.circular(30)
+                       ),
+                       child: Center(
+                         child: Text("Pesanan ${h['status_pesanan'].toString().toUpperCase()}", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                       ),
+                     )
+                  ]
                 ]
               ],
             ),
@@ -251,7 +280,7 @@ class DetailPesananView extends StatelessWidget {
                           color: isLunas ? Colors.green : (isBon ? Colors.orange : Colors.red.shade700),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Text(h['status_pembayaran'] ?? "Belum Lunas", style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),                  
+                        child: Text(h['status_pembayaran'] ?? "Belum Lunas", style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),                 
                       ),
                     ],
                   ),

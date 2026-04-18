@@ -19,6 +19,10 @@ class PesananController extends GetxController {
     "Batal"
   ];
 
+  bool get isOwner {
+    return true;
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -141,5 +145,36 @@ Future<void> batalkanPesanan(int transactionId, bool isLunas, int totalDibayar) 
     } catch (e) {
       Get.snackbar("Error", "Gagal membatalkan pesanan: $e");
     }
+  }
+
+  Future<void> hapusTransaksiPermanen(int transactionId) async {
+    Get.defaultDialog(
+      title: "Hapus Transaksi",
+      middleText: "Apakah Anda yakin ingin menghapus transaksi ini secara permanen? Data tidak dapat dikembalikan.",
+      textConfirm: "Ya, Hapus",
+      textCancel: "Batal",
+      confirmTextColor: Colors.white,
+      buttonColor: Colors.red.shade700,
+      cancelTextColor: Colors.blue,
+      onConfirm: () async {
+        Get.back(); 
+        try {
+          isLoading.value = true;
+
+          await supabase.from('transaction_details').delete().eq('transaction_id', transactionId);
+          await supabase.from('cashflows').delete().eq('transaction_id', transactionId);
+
+          await supabase.from('transactions').delete().eq('id', transactionId);
+
+          await fetchPesanan(); 
+          Get.back(); 
+          Get.snackbar("Terhapus", "Transaksi berhasil dihapus secara permanen", backgroundColor: Colors.green, colorText: Colors.white);
+        } catch (e) {
+          Get.snackbar("Error", "Gagal menghapus transaksi: $e", backgroundColor: Colors.red, colorText: Colors.white);
+        } finally {
+          isLoading.value = false;
+        }
+      }
+    );
   }
 }
