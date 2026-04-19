@@ -16,44 +16,53 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return Container(
-      height: 80,
+
+      height: 80 + bottomPadding,
       color: Colors.transparent,
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
           Container(
-            height: 65,
+
+            height: 65 + bottomPadding,
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.15), blurRadius: 10, offset: const Offset(0, -3))],
             ),
           ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              _bottomNavItem(icon: Icons.home_filled, label: "Beranda", index: 0),
-              _bottomNavItem(icon: Icons.receipt_long, label: "Pesanan", index: 1),
 
-              GestureDetector(
-                onTap: () => _showTransactionBottomSheet(),
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  height: 64,
-                  width: 64,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2196F3),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 5),
-                    boxShadow: [BoxShadow(color: Colors.blue.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
+          Padding(
+            padding: EdgeInsets.only(bottom: bottomPadding),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _bottomNavItem(icon: Icons.home_filled, label: "Beranda", index: 0),
+                _bottomNavItem(icon: Icons.receipt_long, label: "Pesanan", index: 1),
+
+                GestureDetector(
+                  onTap: () => _showTransactionBottomSheet(),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    height: 64,
+                    width: 64,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2196F3),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 5),
+                      boxShadow: [BoxShadow(color: Colors.blue.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
+                    ),
+                    child: const Icon(Icons.add, size: 36, color: Colors.white),
                   ),
-                  child: const Icon(Icons.add, size: 36, color: Colors.white),
                 ),
-              ),
 
-              _bottomNavItem(icon: Icons.insert_chart, label: "Laporan", index: 2),
-              _bottomNavItem(icon: Icons.person, label: "Pengaturan", index: 3),
-            ],
+                _bottomNavItem(icon: Icons.insert_chart, label: "Laporan", index: 2),
+                _bottomNavItem(icon: Icons.person, label: "Pengaturan", index: 3),
+              ],
+            ),
           )
         ],
       ),
@@ -63,7 +72,6 @@ class CustomBottomNav extends StatelessWidget {
   Widget _bottomNavItem({required IconData icon, required String label, required int index}) {
     return Expanded(
       child: InkWell(
-
         onTap: () async {
           int previousIndex = homeC.bottomNavIndex.value; 
 
