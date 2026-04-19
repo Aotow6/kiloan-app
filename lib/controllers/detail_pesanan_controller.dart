@@ -355,6 +355,8 @@ class DetailPesananController extends GetxController {
     int kembalian = dibayar - totalTagihan > 0 ? dibayar - totalTagihan : 0;
     String catatan = h['catatan'] ?? "-";
 
+    int biayaOngkir = h['delivery_fee'] ?? 0;
+
     String namaOutlet = "Laundry Outlet";
     String alamatOutlet = "Alamat tidak tersedia";
     try {
@@ -460,6 +462,23 @@ class DetailPesananController extends GetxController {
                   );
                 }),
 
+                if (biayaOngkir > 0) ...[
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text("Ongkos Kirim", style: const pw.TextStyle(fontSize: 10)),
+                      pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text("1x", style: const pw.TextStyle(fontSize: 10)),
+                          pw.Text(_formatRupiahInternal(biayaOngkir), style: const pw.TextStyle(fontSize: 10)),
+                        ]
+                      ),
+                      pw.SizedBox(height: 4),
+                    ]
+                  )
+                ],
+
                 pw.SizedBox(height: 5),
                 pw.Divider(borderStyle: pw.BorderStyle.dashed),
                 pw.SizedBox(height: 5),
@@ -557,6 +576,8 @@ class DetailPesananController extends GetxController {
 
       String statusP = transaksi['status_pesanan'].toString().toLowerCase();
       String nota = transaksi['nomor_nota'] ?? "-";
+      int biayaOngkir = transaksi['delivery_fee'] ?? 0; 
+
       StringBuffer pesan = StringBuffer();
 
       if (statusP == 'proses') {
@@ -566,6 +587,11 @@ class DetailPesananController extends GetxController {
         pesan.writeln("Berikut nota pesanan cucian kakak:\n");
         pesan.writeln("⏳ *Status:* PROSES");
         pesan.writeln("💳 *Bayar:* ${transaksi['status_pembayaran']}");
+
+        if (biayaOngkir > 0) {
+          pesan.writeln("🚚 *Ongkos Kirim:* Rp ${_formatRupiahInternal(biayaOngkir)}");
+        }
+
         pesan.writeln("💰 *TOTAL: Rp ${_formatRupiahInternal(transaksi['total_tagihan'] ?? 0)}*");
         pesan.writeln("\nCucian kakak segera kami selesaikan. Terima kasih! 🙏");
       } else if (statusP == 'selesai') {
