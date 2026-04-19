@@ -37,6 +37,9 @@ class PelangganController extends GetxController {
   var isLoadingMore = false.obs;
   final ScrollController scrollController = ScrollController();
 
+    bool get isOwner => userC.isOwner;
+
+
   void changeSort(String val) {
     sortType.value = val;
     if (val == 'Abjad') {
@@ -72,16 +75,18 @@ class PelangganController extends GetxController {
       isLoading.value = true;
       hasMore.value = true; 
 
-    final countData = await supabase
+      final countData = await supabase
           .from('customers')
           .select('id') 
-          .eq('outlet_id', userC.outletId);
+          .eq('outlet_id', userC.outletId)
+          .isFilter('deleted_at', null);
       totalPelanggan.value = countData.length;
 
       final data = await supabase
           .from('customers')
           .select()
           .eq('outlet_id', userC.outletId)
+          .isFilter('deleted_at', null)
           .order('created_at', ascending: false)
           .range(0, limit - 1); 
 
@@ -111,6 +116,7 @@ class PelangganController extends GetxController {
           .from('customers')
           .select()
           .eq('outlet_id', userC.outletId)
+          .isFilter('deleted_at', null) 
           .order('created_at', ascending: false)
           .range(start, end);
 
@@ -150,7 +156,7 @@ class PelangganController extends GetxController {
     Get.to(() => TambahPelangganView());
   }
 
-      final FlutterNativeContactPicker _contactPicker = FlutterNativeContactPicker();
+  final FlutterNativeContactPicker _contactPicker = FlutterNativeContactPicker();
 
   Future<void> ambilDariKontak() async {
     try {
@@ -242,6 +248,7 @@ class PelangganController extends GetxController {
           .from('customers')
           .select('id')
           .eq('outlet_id', userC.outletId)
+          .isFilter('deleted_at', null)
           .ilike('nama_pelanggan', nama);
 
       final cekDuplikat = isEdit.value 
@@ -281,13 +288,25 @@ class PelangganController extends GetxController {
       await fetchPelanggan();
 
     } catch (e) {
-      Get.snackbar("Error", "Gagal menyimpan data server sedang sibuk.", backgroundColor: Colors.red, colorText: Colors.white);
+      ErrorHandler.show(e, defaultMessage: "Gagal menyimpan data, server sedang sibuk.");
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> hapusPelanggan(int id, String nama, {bool dariDetail = false}) {
+    if (!isOwner) {
+      Get.snackbar(
+        "Akses Ditolak", 
+        "Hanya Pengelola yang dapat menghapus data pelanggan.", 
+        backgroundColor: Colors.red.shade700, 
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        margin: const EdgeInsets.all(10),
+      );
+      return Future.value();
+    }
+    
     return Get.defaultDialog(
       title: "Hapus Pelanggan?",
       middleText: "Yakin ingin menghapus data $nama?",
@@ -297,7 +316,8 @@ class PelangganController extends GetxController {
       buttonColor: Colors.red.shade700,
       onConfirm: () async {
         try {
-          await supabase.from('customers').delete().eq('id', id);
+          await supabase.from('customers').update({'deleted_at': DateTime.now().toUtc().toIso8601String()}).eq('id', id);
+
           await fetchPelanggan();
 
           Get.back(); 
@@ -431,9 +451,8 @@ class PelangganController extends GetxController {
     return amount.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
   }
 
-    Future<void> validasiDanLanjutOrder(String nama, String phone, int id) async {
+  Future<void> validasiDanLanjutOrder(String nama, String phone, int id) async {
     try {
-
       Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
 
       final outletData = await supabase
@@ -447,7 +466,6 @@ class PelangganController extends GetxController {
           outletData['jam_tutup'] == null || outletData['jam_tutup'].toString().trim().isEmpty) {
 
         Get.back(); 
-
         Get.snackbar(
           "Tahan Dulu! 🛑",
           "Profil Outlet belum lengkap! Silakan minta Owner melengkapi Alamat dan Jam Operasional di menu Pengaturan.",
@@ -456,7 +474,6 @@ class PelangganController extends GetxController {
           duration: const Duration(seconds: 4),
         );
         return; 
-
       }
 
       final layananData = await supabase
@@ -467,7 +484,6 @@ class PelangganController extends GetxController {
 
       if (layananData.isEmpty) {
         Get.back(); 
-
         Get.snackbar(
           "Layanan Kosong! 🛑",
           "Belum ada satupun layanan (cuci/setrika). Silakan buat minimal 1 layanan di menu Pengaturan.",
@@ -476,11 +492,9 @@ class PelangganController extends GetxController {
           duration: const Duration(seconds: 4),
         );
         return; 
-
       }
 
       Get.back(); 
-
       Get.to(() => PilihLayananView(
             namaCustomer: nama,
             idCustomer: id, 
