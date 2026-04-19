@@ -155,12 +155,29 @@ lib/
 
 
 ### 🔐 Login
+### Registrasi
+<img width="738" height="1600" alt="image" src="https://github.com/user-attachments/assets/3300b572-51e3-4ceb-aa2b-2ac13cd5f861" />
+<img width="1080" height="2340" alt="image" src="https://github.com/user-attachments/assets/f7e78265-0496-45ad-9897-8ab181f71724" />
+
 
 ### 🏠 Dashboard
+<img width="738" height="1600" alt="image" src="https://github.com/user-attachments/assets/bcd40e7c-d6b4-4e9c-a3d7-14ad512f3910" />
+<img width="738" height="1600" alt="image" src="https://github.com/user-attachments/assets/250c4012-fe4e-4250-a9b2-e73dccea87e3" />
+
 
 ### 👤 Pelanggan
 ### 🧾 Transaksi
+<img width="738" height="1600" alt="image" src="https://github.com/user-attachments/assets/6d47e1b4-2204-4d48-837a-72057dfd76fd" />
+### Pesanan
+<img width="738" height="1600" alt="image" src="https://github.com/user-attachments/assets/4494da6d-7ca9-406c-aad5-db82f27ea88e" />
+### Pengaturan 
+<img width="738" height="1600" alt="image" src="https://github.com/user-attachments/assets/c89539f3-87cd-4242-be08-384628563192" />
+
+
 ### 💳 Pembayaran
 ### 📊 Laporan
+<img width="738" height="1600" alt="image" src="https://github.com/user-attachments/assets/336164ec-ce61-4c4c-b95b-996a56c7759d" />
+<img width="1080" height="2340" alt="image" src="https://github.com/user-attachments/assets/175420cf-e9f0-46b4-aaa6-863c44f90ed4" />
+
 
 
