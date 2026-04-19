@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:laundry_app/controllers/error_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:path_provider/path_provider.dart'; 
 import 'package:share_plus/share_plus.dart'; 
@@ -131,8 +132,8 @@ class LaporanController extends GetxController {
       totalPiutang.value = piutangBulanIni;
 
     } catch (e) {
-      debugPrint("Error Laporan: $e");
-      Get.snackbar("Error", "Gagal memuat laporan: $e");
+      debugPrint("Error Laporan: ");
+      ErrorHandler.show(e);
     } finally {
       isLoading.value = false;
     }
@@ -296,7 +297,7 @@ class LaporanController extends GetxController {
       );
 
     } catch (e) {
-       Get.snackbar("Error", "Gagal menyiapkan PDF: $e", backgroundColor: Colors.red, colorText: Colors.white);
+       ErrorHandler.show(e);
     } finally {
        isLoading.value = false;
     }

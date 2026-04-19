@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:laundry_app/controllers/error_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'user_controller.dart';
 import 'detail_pesanan_controller.dart'; 
@@ -93,7 +94,7 @@ class PembayaranController extends GetxController {
       }
 
     } catch (e) {
-      Get.snackbar("Error", e.toString(), backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Error", "Terjadi kesalahan", backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
@@ -137,7 +138,7 @@ class PembayaranController extends GetxController {
       }
 
     } catch (e) {
-      Get.snackbar("Error", "Gagal mencatat BON: $e", backgroundColor: Colors.red, colorText: Colors.white);
+      ErrorHandler.show(e);
     } finally {
       isLoading.value = false;
     }

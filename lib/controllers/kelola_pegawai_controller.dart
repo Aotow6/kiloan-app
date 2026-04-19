@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:laundry_app/controllers/error_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'user_controller.dart';
 import 'tambah_pegawai_controller.dart';
@@ -59,7 +60,7 @@ class KelolaPegawaiController extends GetxController {
 
       listPegawai.value = List<Map<String, dynamic>>.from(data);
     } catch (e) {
-      Get.snackbar("Error", "Gagal mengambil data pegawai: $e");
+      ErrorHandler.show(e);
     } finally {
       isLoading.value = false;
     }
@@ -89,7 +90,7 @@ class KelolaPegawaiController extends GetxController {
 
       listPegawai.addAll(List<Map<String, dynamic>>.from(data));
     } catch (e) {
-      debugPrint("Error load more pegawai: $e");
+      debugPrint("Error load more pegawai: ");
     } finally {
       isLoadingMore.value = false;
     }
@@ -112,7 +113,7 @@ class KelolaPegawaiController extends GetxController {
           colorText: Colors.white, 
           duration: const Duration(seconds: 2));
     } catch (e) {
-      Get.snackbar("Error", "Gagal mengubah status: $e", backgroundColor: Colors.red, colorText: Colors.white);
+      ErrorHandler.show(e);
     }
   }
 
@@ -135,7 +136,7 @@ class KelolaPegawaiController extends GetxController {
               backgroundColor: Colors.red.shade600, colorText: Colors.white);
         } catch (e) {
           Get.back();
-          Get.snackbar("Error", "Gagal menghapus pegawai: $e", 
+          Get.snackbar("Error", "Gagal menghapus pegawai: ", 
               backgroundColor: Colors.red, colorText: Colors.white);
         }
       }

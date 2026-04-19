@@ -248,7 +248,7 @@ class AuthController extends GetxController {
     } catch (e) {
       Get.snackbar("Registrasi Gagal", "Email sudah terdaftar atau server sibuk.",
           backgroundColor: Colors.red, colorText: Colors.white);
-      debugPrint("Detail Error: $e");
+      debugPrint("Detail Error: ");
     } finally {
       isLoading.value = false;
     }

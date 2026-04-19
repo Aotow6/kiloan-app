@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:laundry_app/controllers/error_handler.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -81,7 +82,7 @@ class DetailPesananController extends GetxController {
         ongkir.value = 0;
       }
     } catch (e) {
-      debugPrint("Error ambil detail: $e");
+      debugPrint("Error ambil detail: ");
     } finally {
       isLoading.value = false;
     }
@@ -202,7 +203,7 @@ class DetailPesananController extends GetxController {
       if (Get.isRegistered<HomeController>()) Get.find<HomeController>().refreshDashboard();
       Get.snackbar("Sukses", "Informasi Logistik berhasil disimpan!", backgroundColor: Colors.green, colorText: Colors.white);
     } catch (e) {
-      Get.snackbar("Gagal", "Error simpan logistik: $e", backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Gagal", "Error simpan logistik: ", backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
@@ -237,7 +238,7 @@ class DetailPesananController extends GetxController {
       if (Get.isRegistered<HomeController>()) Get.find<HomeController>().refreshDashboard();
       Get.snackbar("Info", "Informasi Logistik dibatalkan", backgroundColor: Colors.orange, colorText: Colors.white);
     } catch (e) {
-      Get.snackbar("Gagal", "Error batal logistik: $e", backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Gagal", "Error batal logistik: ", backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
@@ -256,7 +257,7 @@ class DetailPesananController extends GetxController {
       await fetchDetailItems(transactionId, catatanBaru);
       Get.snackbar("Sukses", "Catatan berhasil diperbarui!", backgroundColor: Colors.green, colorText: Colors.white);
     } catch (e) {
-      Get.snackbar("Gagal", "Gagal menyimpan catatan: $e", backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Gagal", "Gagal menyimpan catatan: ", backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
@@ -286,7 +287,7 @@ class DetailPesananController extends GetxController {
         Get.snackbar("Berhasil", "Status diperbarui jadi ${status.toUpperCase()}", backgroundColor: Colors.blue, colorText: Colors.white);
       }
     } catch (e) {
-      Get.snackbar("Gagal", e.toString());
+      Get.snackbar("Gagal", "Gagal memperbarui status");
     } finally {
       isLoading.value = false;
     }
@@ -307,7 +308,7 @@ class DetailPesananController extends GetxController {
 
       Get.snackbar("Sukses", "Masuk ke catatan Kasbon Pelanggan", backgroundColor: Colors.orange, colorText: Colors.white);
     } catch (e) {
-      Get.snackbar("Error", e.toString());
+      Get.snackbar("Error", "Gagal menambahkan kasbon");
     } finally {
       isLoading.value = false;
     }
@@ -363,7 +364,7 @@ class DetailPesananController extends GetxController {
         alamatOutlet = outletData['alamat'] ?? "Alamat tidak tersedia";
       }
     } catch (e) {
-      debugPrint("Gagal narik data outlet: $e");
+      debugPrint("Gagal narik data outlet: ");
     }
 
     int totalItemLayanan = listItems.length;
@@ -520,7 +521,7 @@ class DetailPesananController extends GetxController {
         name: 'Nota_${h['nomor_nota']}',
       );
     } catch (e) {
-      Get.snackbar("Error", "Gagal mencetak nota: $e");
+      ErrorHandler.show(e);
     } finally {
       isLoading.value = false;
     }
@@ -625,8 +626,8 @@ class DetailPesananController extends GetxController {
       }
 
     } catch (e) {
-      Get.snackbar("Error", "Gagal menyiapkan nota WA: $e", backgroundColor: Colors.red, colorText: Colors.white);
-      debugPrint("kirimNotaWA error: $e");
+      ErrorHandler.show(e);
+      debugPrint("kirimNotaWA error: ");
     } finally {
       isLoading.value = false;
     }

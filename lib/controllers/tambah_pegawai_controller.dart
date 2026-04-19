@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:laundry_app/controllers/error_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'user_controller.dart';
 import 'kelola_pegawai_controller.dart';
@@ -157,7 +158,7 @@ class TambahPegawaiController extends GetxController {
     } on AuthException catch (e) {
       Get.snackbar("Gagal", e.message, backgroundColor: Colors.red, colorText: Colors.white);
     } catch (e) {
-      Get.snackbar("Error", "Terjadi kesalahan: $e", backgroundColor: Colors.red, colorText: Colors.white);
+      ErrorHandler.show(e);
     } finally {
       isLoading.value = false;
     }

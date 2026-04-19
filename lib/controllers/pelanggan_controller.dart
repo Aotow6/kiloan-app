@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_native_contact_picker/model/contact.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:laundry_app/controllers/error_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'user_controller.dart';
@@ -92,7 +93,7 @@ class PelangganController extends GetxController {
 
       changeSort(sortType.value); 
     } catch (e) {
-      Get.snackbar("Error", "Gagal ambil data: $e");
+      ErrorHandler.show(e);
     } finally {
       isLoading.value = false;
     }
@@ -120,7 +121,7 @@ class PelangganController extends GetxController {
       listPelanggan.addAll(List<Map<String, dynamic>>.from(data));
       changeSort(sortType.value); 
     } catch (e) {
-      debugPrint("Error load more pelanggan: $e");
+      debugPrint("Error load more pelanggan: ");
     } finally {
       isLoadingMore.value = false;
     }
@@ -180,7 +181,7 @@ class PelangganController extends GetxController {
         Get.to(() => TambahPelangganView());
       }
     } catch (e) {
-      debugPrint("Error pilih kontak: $e");
+      debugPrint("Error pilih kontak: ");
     }
   }
 
@@ -308,7 +309,7 @@ class PelangganController extends GetxController {
           Get.snackbar("Sukses", "Data $nama berhasil dihapus", backgroundColor: Colors.red.shade600, colorText: Colors.white);
         } catch (e) {
           Get.back();
-          Get.snackbar("Error", "Gagal menghapus: $e", backgroundColor: Colors.red, colorText: Colors.white);
+          ErrorHandler.show(e);
         }
       }
     );
@@ -420,7 +421,7 @@ class PelangganController extends GetxController {
       detailTransaksiTerakhir.value = lastDate != null ? formatter.format(lastDate) : "-";
 
     } catch (e) {
-      debugPrint("Error fetch detail pelanggan: $e");
+      debugPrint("Error fetch detail pelanggan: ");
     } finally {
       isDetailLoading.value = false;
     }
@@ -488,7 +489,7 @@ class PelangganController extends GetxController {
 
     } catch (e) {
       Get.back(); 
-      Get.snackbar("Error", "Gagal memvalidasi data: $e", backgroundColor: Colors.red, colorText: Colors.white);
+      ErrorHandler.show(e);
     }
   }
 }

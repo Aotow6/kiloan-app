@@ -154,7 +154,7 @@ class HomeController extends GetxController {
       pelangganBaru.value = custBaru.length;
 
     } catch (e) {
-      debugPrint("Error Refresh: $e"); 
+      debugPrint("Error Refresh: "); 
     } finally {
       isLoading.value = false;
     }

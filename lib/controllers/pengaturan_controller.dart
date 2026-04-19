@@ -37,7 +37,7 @@ class PengaturanController extends GetxController {
     } catch (e) {
       Get.snackbar(
         "Error",
-        "Gagal keluar akun: $e",
+        "Gagal keluar akun: ",
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );

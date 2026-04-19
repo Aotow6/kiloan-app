@@ -37,7 +37,7 @@ class UserController extends GetxController {
         print("Profil Berhasil Diambil: ${currentUser.value?.namaLengkap}");
       }
     } catch (e) {
-      print("Error ambil profil: $e");
+      print("Error ambil profil: ");
     } finally {
       isLoading.value = false;
     }

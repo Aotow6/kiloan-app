@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:laundry_app/controllers/error_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'user_controller.dart'; 
 
@@ -78,7 +79,7 @@ class LayananController extends GetxController {
 
       listServices.value = List<Map<String, dynamic>>.from(data);
     } catch (e) {
-      Get.snackbar("Error", "Gagal mengambil data: $e");
+      ErrorHandler.show(e);
     } finally {
       isLoading.value = false;
     }
@@ -168,7 +169,7 @@ class LayananController extends GetxController {
       Get.snackbar("Sukses", "Layanan berhasil disimpan", backgroundColor: Colors.green, colorText: Colors.white);
 
     } catch (e) {
-      Get.snackbar("Gagal", "Gagal menyimpan layanan: $e", backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Gagal", "Gagal menyimpan layanan: ", backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
@@ -277,7 +278,7 @@ class LayananController extends GetxController {
           Get.back(); 
           Get.snackbar("Berhasil", "$nama telah dihapus", backgroundColor: Colors.red, colorText: Colors.white);
         } catch (e) {
-          Get.snackbar("Error", "Gagal menghapus: $e");
+          ErrorHandler.show(e);
         }
       },
     );

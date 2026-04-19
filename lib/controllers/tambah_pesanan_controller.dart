@@ -83,7 +83,7 @@ class TambahPesananController extends GetxController {
       Get.snackbar("Sukses", "Pesanan berhasil dibuat!");
       
     } catch (e) {
-      Get.snackbar("Error", "Gagal simpan: $e");
+      Get.snackbar("Error", "Gagal simpan: ");
     } finally {
       isLoading.value = false;
     }

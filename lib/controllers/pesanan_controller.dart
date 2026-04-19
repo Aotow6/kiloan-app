@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:laundry_app/controllers/error_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'user_controller.dart';
 
@@ -80,7 +81,7 @@ class PesananController extends GetxController {
       if (data.length < limit) hasMore.value = false;
       listPesanan.assignAll(List<Map<String, dynamic>>.from(data));
     } catch (e) {
-      Get.snackbar("Error", "Gagal mengambil data pesanan: $e");
+      ErrorHandler.show(e);
     } finally {
       isLoading.value = false;
     }
@@ -113,7 +114,7 @@ class PesananController extends GetxController {
       if (data.length < limit) hasMore.value = false;
       listPesanan.addAll(List<Map<String, dynamic>>.from(data));
     } catch (e) {
-      debugPrint("Error load more: $e");
+      debugPrint("Error load more: ");
     } finally {
       isLoadingMore.value = false;
     }
@@ -130,7 +131,7 @@ class PesananController extends GetxController {
       fetchPesanan(); 
       Get.back(); 
       Get.snackbar("Berhasil", "Status pesanan telah diubah", backgroundColor: Colors.green, colorText: Colors.white);
-    } catch (e) { Get.snackbar("Error", e.toString()); }
+    } catch (e) { Get.snackbar("Error", "Terjadi kesalahan"); }
   }
 
   Future<void> lunasiPembayaran(int idTransaksi) async {
@@ -139,7 +140,7 @@ class PesananController extends GetxController {
       await fetchPesanan(); 
       Get.back();
       Get.snackbar("Lunas!", "Pembayaran diterima", backgroundColor: Colors.green, colorText: Colors.white);
-    } catch (e) { Get.snackbar("Error", e.toString()); }
+    } catch (e) { Get.snackbar("Error", "Terjadi kesalahan"); }
   }
 
   Future<Map<String, dynamic>?> fetchDetailPesanan(int transactionId) async {
@@ -165,7 +166,7 @@ class PesananController extends GetxController {
       Get.back(); 
       fetchPesanan(); 
       Get.snackbar("Dibatalkan", "Pesanan batal", backgroundColor: Colors.red, colorText: Colors.white);
-    } catch (e) { Get.snackbar("Error", e.toString()); }
+    } catch (e) { Get.snackbar("Error", "Terjadi kesalahan"); }
   }
 
   Future<void> hapusTransaksiPermanen(int transactionId) async {
@@ -182,7 +183,7 @@ class PesananController extends GetxController {
           await supabase.from('transactions').delete().eq('id', transactionId);
           await fetchPesanan(); 
           Get.back(); 
-        } catch (e) { Get.snackbar("Error", e.toString()); }
+        } catch (e) { Get.snackbar("Error", "Terjadi kesalahan"); }
         finally { isLoading.value = false; }
       }
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:laundry_app/controllers/error_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'user_controller.dart';
 import '../models/outlet_model.dart'; 
@@ -173,7 +174,7 @@ class OutletController extends GetxController {
       );
 
     } catch (e) {
-      Get.snackbar("Error", "Gagal menyimpan data ke server: $e", backgroundColor: Colors.red, colorText: Colors.white);
+      ErrorHandler.show(e);
     } finally {
       isLoading.value = false;
     }

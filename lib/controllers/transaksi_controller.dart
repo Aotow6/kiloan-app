@@ -316,7 +316,7 @@ class TransaksiController extends GetxController {
                         Get.snackbar("Waduh", "Gagal ngambil detail pesanan nih");
                       }
                     } catch (e) {
-                      Get.snackbar("Error", e.toString());
+                      Get.snackbar("Error", "Terjadi kesalahan");
                     }
                   },
                   loadingWidget: const Center(child: CircularProgressIndicator()),
@@ -339,7 +339,7 @@ class TransaksiController extends GetxController {
       isAntarJemput.value = false;
 
     } catch (e) {
-      Get.snackbar("Gagal", "Terjadi kesalahan: $e", backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar("Gagal", "Terjadi kesalahan: ", backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
