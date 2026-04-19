@@ -22,7 +22,7 @@ class PesananController extends GetxController {
 
   final List<String> tabs = ["Diproses", "Selesai", "Diambil", "Batal"];
 
-  bool get isOwner => true;
+  bool get isOwner => userC.isOwner;
 
   @override
   void onInit() {
