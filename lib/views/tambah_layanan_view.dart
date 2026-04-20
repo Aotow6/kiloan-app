@@ -10,6 +10,9 @@ class TambahLayananView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -18,8 +21,10 @@ class TambahLayananView extends StatelessWidget {
         leading: IconButton(icon: const Icon(Icons.arrow_back, color: Color(0xFF102A43)), onPressed: () => Get.back()),
         title: const Text("Tambah Layanan", style: TextStyle(color: Color(0xFF102A43), fontWeight: FontWeight.bold)),
       ),
+
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottomPadding), 
+
         decoration: const BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -5))]),
         child: Obx(() => ElevatedButton(
           onPressed: layC.isLoading.value ? null : () => layC.simpanLayanan(),
@@ -33,6 +38,7 @@ class TambahLayananView extends StatelessWidget {
             : const Text("SIMPAN LAYANAN", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
         )),
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -57,7 +63,7 @@ class TambahLayananView extends StatelessWidget {
                   controller: textEditingController,
                   focusNode: focusNode,
                   textCapitalization: TextCapitalization.none, 
-                  
+
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\s\-\&]')),
                     LengthLimitingTextInputFormatter(20),
