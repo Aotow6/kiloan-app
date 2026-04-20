@@ -17,6 +17,8 @@ class DetailPelangganView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       pelC.fetchDetailPelanggan(id);
     });
@@ -88,7 +90,6 @@ class DetailPelangganView extends StatelessWidget {
                           ),
                           const SizedBox(width: 16),
                         ],
-                        // Icon(Icons.phone, color: Colors.red.shade400),
                       ],
                     ),
                   ),
@@ -123,7 +124,8 @@ class DetailPelangganView extends StatelessWidget {
 
                   Container(
                     width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 100),
+                    margin: const EdgeInsets.only(bottom: 120), 
+
                     child: TextButton.icon(
                       onPressed: () => pelC.hapusPelanggan(id, nama, dariDetail: true),
                       icon: const Icon(Icons.delete, color: Colors.red), 
@@ -139,7 +141,8 @@ class DetailPelangganView extends StatelessWidget {
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              padding: const EdgeInsets.all(16),
+
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding),
               color: Colors.white,
               width: double.infinity,
               child: ElevatedButton(

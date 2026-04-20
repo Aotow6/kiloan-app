@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart'; 
 import 'package:get/get.dart';
 import '../controllers/profil_controller.dart';
 
@@ -10,6 +10,9 @@ class ProfilView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -29,8 +32,10 @@ class ProfilView extends StatelessWidget {
           ],
         ),
       ),
+
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottomPadding), 
+
         decoration: const BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -5))]),
         child: Obx(() => ElevatedButton(
               onPressed: profC.isLoading.value ? null : () => profC.simpanProfil(),

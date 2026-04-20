@@ -10,6 +10,9 @@ class TambahPegawaiView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -24,7 +27,8 @@ class TambahPegawaiView extends StatelessWidget {
       ),
 
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottomPadding), 
+
         decoration: const BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -5))]),
         child: Obx(() => ElevatedButton(
           onPressed: tamC.isLoading.value ? null : () => tamC.simpanData(),
@@ -54,7 +58,7 @@ class TambahPegawaiView extends StatelessWidget {
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
                 LengthLimitingTextInputFormatter(30),
-                
+
               ],
             )),
             const SizedBox(height: 20),

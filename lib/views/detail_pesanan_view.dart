@@ -27,6 +27,8 @@ class DetailPesananView extends StatelessWidget {
   Widget build(BuildContext context) {
     detailC.initData(data);
 
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return WillPopScope(
       onWillPop: () async {
         Get.back(result: detailC.isDataChanged);
@@ -71,7 +73,8 @@ class DetailPesananView extends StatelessWidget {
           bool isOwner = pesananC.isOwner;
 
           return Container(
-            padding: const EdgeInsets.all(16),
+
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding),
             decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, -5))]),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -116,7 +119,8 @@ class DetailPesananView extends StatelessWidget {
                           } else {
                             Get.bottomSheet(
                               Container(
-                                padding: const EdgeInsets.all(24),
+
+                                padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPadding),
                                 decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
@@ -362,10 +366,12 @@ class DetailPesananView extends StatelessWidget {
                               detailC.isPengantaranSaved.value
                                   ? IconButton(
                                       icon: const Icon(Icons.edit, color: Colors.grey, size: 20),
-                                      onPressed: isLogistikLocked ? null : () => _showTambahPengantaranBottomSheet(h, h['status_pesanan']), 
+                                      onPressed: isLogistikLocked ? null : () => _showTambahPengantaranBottomSheet(context, h, h['status_pesanan']), 
+
                                     )
                                   : ElevatedButton(
-                                      onPressed: isLogistikLocked ? null : () => _showTambahPengantaranBottomSheet(h, h['status_pesanan']), 
+                                      onPressed: isLogistikLocked ? null : () => _showTambahPengantaranBottomSheet(context, h, h['status_pesanan']), 
+
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.orange,
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -510,10 +516,14 @@ class DetailPesananView extends StatelessWidget {
     );
   }
 
-  void _showTambahPengantaranBottomSheet(Map<String, dynamic> h, String statusP) {
+  void _showTambahPengantaranBottomSheet(BuildContext context, Map<String, dynamic> h, String statusP) {
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(24),
+
+        padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPadding),
         decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24))),
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -225,9 +225,12 @@ class KelolaLayananView extends StatelessWidget {
   void _tampilkanDialogEdit(BuildContext context, Map<String, dynamic> service) {
     layC.siapkanEdit(service);
 
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(24),
+
+        padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPadding),
         decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
         child: SingleChildScrollView(
           child: Column(

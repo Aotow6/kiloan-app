@@ -11,6 +11,9 @@ class TambahPelangganView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
 
@@ -32,8 +35,12 @@ class TambahPelangganView extends StatelessWidget {
       ),
 
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(color: Colors.white),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottomPadding), 
+
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -5))],
+        ),
         child: Obx(() => ElevatedButton(
           onPressed: pelangganC.isLoading.value ? null : () {
             pelangganC.simpanPelanggan();
