@@ -42,10 +42,7 @@ Penjualan di bisnis ini juga sangat dipengaruhi oleh **musim dan kalender**. Pad
 
 ## 🚀 Fitur Utama
 
-![Auth](https://img.shields.io/badge/Auth-Supabase-10b981?style=flat-square)
-![Peran](https://img.shields.io/badge/Peran-Owner%20%7C%20Kasir-4b5563?style=flat-square)
-![POS](https://img.shields.io/badge/POS-Pencatatan%20Transaksi-ef4444?style=flat-square)
-![Backend](https://img.shields.io/badge/Backend-Supabase-10b981?style=flat-square)
+
 
 | Fitur | Keterangan |
 | :--- | :--- |
@@ -140,27 +137,60 @@ lib/
 
 ## 🛠️ Teknologi yang Digunakan
 
-| Teknologi | Fungsi |
-|----------|-------|
-| Flutter | Frontend mobile |
-| GetX | State management & routing |
-| Supabase | Backend & API |
-| PostgreSQL | Database |
-| Dart | Bahasa pemrograman |
+| Teknologi / Library | Fungsi |
+| :--- | :--- |
+| **Flutter & Dart** | Framework Frontend & Bahasa Pemrograman |
+| **GetX** | State management, routing, & dependency injection |
+| **Supabase (PostgreSQL)** | Backend serverless, Database relasional, & Autentikasi aman |
+| **PDF & Printing** | *Generate* laporan keuangan dan cetak struk digital |
+| **URL Launcher & Share** | Integrasi pengiriman nota otomatis via WhatsApp & platform lain |
+| **Native Integrations** | Akses kontak bawaan HP (Contact Picker) & *Splash Screen* |
+| **Intl** | Formatter lokalisasi mata uang (Rupiah) dan format tanggal |
 
+## 🌟 Nilai Tambah (Eksplorasi Package Tambahan)
+
+Aplikasi ini mengimplementasikan berbagai *package* pihak ketiga di luar modul praktikum standar untuk menunjang fitur operasional bisnis yang lebih nyata dan profesional:
+
+**1. Modul Laporan & Dokumen Digital**
+* `pdf` & `printing`: Digunakan untuk men-*generate* struk transaksi dan laporan keuangan ke dalam format PDF secara dinamis. *Package* ini juga memungkinkan aplikasi untuk mencetak dokumen secara langsung.
+* `path_provider`: Mengakses direktori *file system* bawaan perangkat untuk menyimpan file PDF (laporan/struk) secara lokal di *storage* HP pengguna.
+
+**2. Integrasi Komunikasi & CRM (Customer Relationship Management)**
+* `share_whatsapp` & `url_launcher`: Memungkinkan kasir untuk mengirimkan nota digital atau status cucian langsung ke nomor WhatsApp pelanggan dengan satu kali klik.
+* `share_plus`: Menyediakan fitur *native sharing popup* untuk membagikan bukti transaksi ke berbagai platform lain (Email, Telegram, dll).
+
+**3. UX & Utilitas Native**
+* `flutter_native_contact_picker`: Eksplorasi fitur *native* HP yang memungkinkan kasir mengambil data pelanggan langsung dari buku kontak (*phonebook*) perangkat tanpa harus mengetik nomor satu per satu.
+* `intl`: Digunakan untuk melokalisasi format tanggal (Date Time) dan format mata uang Rupiah (IDR) secara otomatis pada fitur kasir dan laporan keuangan agar angka mudah dibaca.
+* `font_awesome_flutter`: Memperkaya antarmuka pengguna (UI) dengan ratusan ikon profesional yang tidak tersedia di *package* Material bawaan.
+* `flutter_native_splash`: Membuat *branding* aplikasi terlihat lebih profesional layaknya aplikasi komersial dengan menampilkan *splash screen* transisi logo saat aplikasi baru dibuka, menghilangkan layar putih kosong (*blank white screen*).
 
 
 
 ## 🖼️ Tampilan Aplikasi
 
-
+### Registrasi
+<p align="center"> <img src="https://github.com/user-attachments/assets/3300b572-51e3-4ceb-aa2b-2ac13cd5f861" width="250"/> 
+  
 ### 🔐 Login
+<p align="center"> <img src="https://github.com/user-attachments/assets/dfff9234-1bb7-4525-9024-f198533a16bb" width="250" style="margin-right: 10px;"/>
+  <img src="https://github.com/user-attachments/assets/a20051f3-97ea-42c8-8845-508125820d59" width="250"/> </p>
 
 ### 🏠 Dashboard
+<p align="center"> <img src="https://github.com/user-attachments/assets/bcd40e7c-d6b4-4e9c-a3d7-14ad512f3910" width="250" style="margin-right: 10px;" />
+<img  src="https://github.com/user-attachments/assets/250c4012-fe4e-4250-a9b2-e73dccea87e3"  width="250" /> </p>
 
-### 👤 Pelanggan
-### 🧾 Transaksi
-### 💳 Pembayaran
+### Pesanan
+<p align="center"> <img src="https://github.com/user-attachments/assets/4494da6d-7ca9-406c-aad5-db82f27ea88e"  width="250" /> </p>
+
+#### 🧾 Transaksi
+<p align="center"> <img src="https://github.com/user-attachments/assets/6d47e1b4-2204-4d48-837a-72057dfd76fd"  width="250" /> </p>
+
 ### 📊 Laporan
+<p align="center"> <img src="https://github.com/user-attachments/assets/336164ec-ce61-4c4c-b95b-996a56c7759d" width="250" />
+<img src="https://github.com/user-attachments/assets/175420cf-e9f0-46b4-aaa6-863c44f90ed4" width="250" /> </p>
 
+### Pengaturan 
+<p align="center"> <img  src="https://github.com/user-attachments/assets/4184cdc8-dbd8-4725-bfe0-27e9f28eebad" width="250" />
+<img  src="https://github.com/user-attachments/assets/c89539f3-87cd-4242-be08-384628563192" width="250" /> </p>
 
