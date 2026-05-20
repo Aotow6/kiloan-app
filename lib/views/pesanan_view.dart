@@ -6,7 +6,6 @@ import '../controllers/pesanan_controller.dart';
 import 'detail_pesanan_view.dart';
 import 'widgets/navbar.dart';
 
-// 🔥 UBAH JADI STATEFUL WIDGET 🔥
 class PesananView extends StatefulWidget {
   const PesananView({super.key});
 
@@ -18,7 +17,7 @@ class _PesananViewState extends State<PesananView> {
   final PesananController pesananC = Get.put(PesananController());
   final HomeController homeC = Get.find<HomeController>();
   
-  // 🔥 SCROLL CONTROLLER DIPASANG DI SINI BUKAN DI CONTROLLER 🔥
+  
   final ScrollController _scrollC = ScrollController();
 
   @override

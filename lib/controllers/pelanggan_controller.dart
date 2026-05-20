@@ -22,6 +22,8 @@ class PelangganController extends GetxController {
 
   final namaCtrl = TextEditingController();
   final phoneCtrl = TextEditingController();
+  final alamatCtrl = TextEditingController();
+  var errAlamat = RxnString();
   var isTanpaNomor = false.obs;
 
   var errNama = RxnString();
@@ -37,7 +39,7 @@ class PelangganController extends GetxController {
   var isLoadingMore = false.obs;
   final ScrollController scrollController = ScrollController();
 
-    bool get isOwner => userC.isOwner;
+  bool get isOwner => userC.isOwner;
 
 
   void changeSort(String val) {
@@ -265,6 +267,7 @@ class PelangganController extends GetxController {
         await supabase.from('customers').update({
           'nama_pelanggan': nama,
           'no_wa': isTanpaNomor.value ? null : phone,
+          'alamat': alamatCtrl.text,
         }).eq('id', editId.value);
 
         Get.back(); 
@@ -276,6 +279,7 @@ class PelangganController extends GetxController {
           'outlet_id': userC.outletId,
           'nama_pelanggan': nama,
           'no_wa': isTanpaNomor.value ? null : phone,
+          'alamat': alamatCtrl.text,
           'total_kasbon': 0,
         });
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../controllers/user_controller.dart';
+import 'package:laundry_app/services/sensor_service.dart';
 
 class AuthController extends GetxController {
   final supabase = Supabase.instance.client;
@@ -53,7 +54,7 @@ class AuthController extends GetxController {
     errPasswordLogin.value = null; 
   }
 
-   Future<void> login() async {
+  Future<void> login() async {
     clearErrors();
     bool isValid = true;
     String email = emailLoginCtrl.text.trim();
@@ -74,6 +75,19 @@ class AuthController extends GetxController {
 
     if (!isValid) return;
 
+    final sensorS = Get.find<SensorService>();
+    bool validBiometrik = await sensorS.validasiUser("Verifikasi sidik jari untuk masuk ke aplikasi");
+    
+    if (!validBiometrik) {
+      Get.snackbar(
+        "Akses Ditolak", 
+        "Login dibatalkan. Verifikasi sidik jari gagal.", 
+        backgroundColor: Colors.red, 
+        colorText: Colors.white
+      );
+      return; 
+    }
+
     try {
       isLoading.value = true;
 
@@ -83,7 +97,6 @@ class AuthController extends GetxController {
       );
 
       if (response.user != null) {
-
         final userData = await supabase
             .from('users')
             .select('role, status_aktif')
@@ -117,10 +130,8 @@ class AuthController extends GetxController {
         await userC.getUserProfile();
 
         if (userC.outletId != null) {
-
           Get.snackbar("Sukses", "Selamat datang kembali!", 
               backgroundColor: Colors.green, colorText: Colors.white);
-
           Get.offAllNamed('/home');
         } else {
           await supabase.auth.signOut();

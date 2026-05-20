@@ -1,3 +1,4 @@
+import 'dart:io'; // TAMBAHAN: Wajib untuk menampilkan gambar dari memori HP
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/transaksi_controller.dart';
@@ -20,6 +21,9 @@ class KonfirmasiPesananView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      trxC.tarikAlamatPelanggan(idCustomer);
+    });
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
@@ -311,6 +315,71 @@ class KonfirmasiPesananView extends StatelessWidget {
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     ),
                   ),
+                  
+                  // =======================================================
+                  // SENSOR 2: IMPLEMENTASI TAMPILAN KAMERA (FOTO BUKTI BAJU)
+                  // =======================================================
+                  const SizedBox(height: 24),
+                  const Text("Foto Bukti Pakaian (Opsional)", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
+                  const SizedBox(height: 12),
+                  Obx(() {
+                    if (trxC.fotoBukti.value == null) {
+                      return InkWell(
+                        onTap: () => trxC.ambilFotoBaju(), 
+                        child: Container(
+                          width: double.infinity,
+                          height: 130,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid, width: 1.5),
+                          ),
+                          child: const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.camera_alt_rounded, color: Colors.blue, size: 42),
+                              SizedBox(height: 10),
+                              Text(
+                                "Ketuk untuk Ambil Foto Baju",
+                                style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    } else {
+                      return Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              File(trxC.fotoBukti.value!.path),
+                              width: double.infinity,
+                              height: 220,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 10,
+                            right: 10,
+                            child: InkWell(
+                              onTap: () => trxC.fotoBukti.value = null, 
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: Colors.redAccent,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.delete_forever, color: Colors.white, size: 22),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                  }),
+                  // =======================================================
+
                 ],
               ),
             ),
