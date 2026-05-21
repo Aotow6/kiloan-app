@@ -7,14 +7,17 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:intl/intl.dart'; 
-import 'package:path_provider/path_provider.dart'; 
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_whatsapp/share_whatsapp.dart';
 import 'package:flutter/services.dart';
 
-import 'transaksi_controller.dart'; 
-import 'pesanan_controller.dart'; 
-import 'home_controller.dart'; 
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:image_picker/image_picker.dart';
+
+import 'transaksi_controller.dart';
+import 'pesanan_controller.dart';
+import 'home_controller.dart';
 import 'user_controller.dart';
 import '../views/pilih_layanan_view.dart';
 
@@ -26,6 +29,11 @@ class DetailPesananController extends GetxController {
   var isDetailTagihanExpanded = true.obs;
   var isDetailPembayaranExpanded = true.obs;
 
+  var isListening = false.obs;
+  var fotoUrl = "".obs;
+
+  late stt.SpeechToText _speech;
+
   void toggleDetailTagihan() => isDetailTagihanExpanded.value = !isDetailTagihanExpanded.value;
   void toggleDetailPembayaran() => isDetailPembayaranExpanded.value = !isDetailPembayaranExpanded.value;
 
@@ -33,13 +41,144 @@ class DetailPesananController extends GetxController {
   var headerData = <String, dynamic>{}.obs;
   var isLoading = false.obs;
 
-  var ongkir = 0.obs; 
+  var ongkir = 0.obs;
   final ongkirCtrl = TextEditingController();
   final alamatCtrl = TextEditingController();
-  final catatanEditCtrl = TextEditingController(); 
+  final catatanEditCtrl = TextEditingController();
 
   var isPengantaranSaved = false.obs;
   var isDataChanged = false;
+  
+  @override
+  void onInit() {
+    super.onInit();
+    _speech = stt.SpeechToText();
+  }
+
+ void toggleMic() async {
+  if (isListening.value) {
+    isListening.value = false;
+    await _speech.stop();
+    HapticFeedback.lightImpact();
+    return;
+  }
+
+  bool available = await _speech.initialize(
+    onStatus: (val) {
+      debugPrint('onStatus: $val');
+      if (val == 'done' || val == 'notListening') {
+        isListening.value = false;
+        _speech.stop();
+      }
+    },
+    onError: (val) {
+      debugPrint('onError: $val');
+      isListening.value = false;
+      _speech.stop();
+    },
+  );
+
+  if (available) {
+    isListening.value = true;
+    HapticFeedback.lightImpact();
+
+    final String existingText = catatanEditCtrl.text.trimRight();
+    final String prefix = existingText.isEmpty ? '' : '$existingText ';
+
+    _speech.listen(
+      localeId: 'id_ID',
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 3),
+      onResult: (val) {
+        catatanEditCtrl.value = TextEditingValue(
+          text: prefix + val.recognizedWords,
+          selection: TextSelection.collapsed(
+            offset: (prefix + val.recognizedWords).length,
+          ),
+        );
+      },
+    );
+  } else {
+    Get.snackbar(
+      "Izin Ditolak",
+      "Aplikasi tidak mendapat izin Microphone.",
+      backgroundColor: Colors.orange,
+      colorText: Colors.white,
+    );
+  }
+}
+
+  Future<void> ubahAtauTambahFoto(int transaksiId) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 70,
+      );
+
+      if (image != null) {
+        isLoading.value = true;
+
+        final file = File(image.path);
+        final fileExt = image.path.split('.').last;
+        final fileName = 'nota_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+
+        await supabase.storage.from('foto_baju').upload(fileName, file);
+
+        final newUrl = supabase.storage.from('foto_baju').getPublicUrl(fileName);
+
+        await supabase.from('transactions').update({'foto_bukti': newUrl}).eq('id', transaksiId);
+
+        fotoUrl.value = newUrl;
+        headerData['foto_bukti'] = newUrl;
+        isDataChanged = true;
+
+        HapticFeedback.mediumImpact();
+        Get.snackbar("Sukses", "Foto bukti berhasil diperbarui!", backgroundColor: Colors.green, colorText: Colors.white);
+      }
+    } catch (e) {
+      debugPrint("Error upload foto: $e");
+      Get.snackbar("Gagal", "Terjadi kesalahan saat mengunggah foto.", backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> hapusFotoBukti(int transaksiId, String url) async {
+    Get.defaultDialog(
+      title: "Hapus Foto?",
+      middleText: "Yakin ingin menghapus foto bukti ini?",
+      textCancel: "Batal",
+      textConfirm: "Hapus",
+      confirmTextColor: Colors.white,
+      buttonColor: Colors.red,
+      onConfirm: () async {
+        try {
+          Get.back();
+          isLoading.value = true;
+
+          Uri uri = Uri.parse(url);
+          String fileName = uri.pathSegments.last;
+
+          await supabase.storage.from('foto_baju').remove([fileName]);
+
+          await supabase.from('transactions').update({'foto_bukti': null}).eq('id', transaksiId);
+
+          fotoUrl.value = "";
+          headerData['foto_bukti'] = null;
+          isDataChanged = true;
+
+          HapticFeedback.mediumImpact();
+          Get.snackbar("Dihapus", "Foto bukti berhasil dihapus.", backgroundColor: Colors.orange, colorText: Colors.white);
+        } catch (e) {
+          debugPrint("Error hapus foto: $e");
+          Get.snackbar("Gagal", "Terjadi kesalahan saat menghapus foto.", backgroundColor: Colors.red, colorText: Colors.white);
+        } finally {
+          isLoading.value = false;
+        }
+      }
+    );
+  }
 
   String _formatRupiahInternal(int val) {
     return val.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
@@ -54,6 +193,7 @@ class DetailPesananController extends GetxController {
 
   Future<void> initData(Map<String, dynamic> initialData) async {
     headerData.value = initialData;
+    fotoUrl.value = initialData['foto_bukti'] ?? "";
     await fetchDetailItems(initialData['id'], initialData['catatan']);
   }
 
@@ -101,7 +241,7 @@ class DetailPesananController extends GetxController {
         "durasi_jam": item['services']?['durasi_jam'] ?? 0,
         "kuantitas": (item['kuantitas'] is int) ? (item['kuantitas'] as int).toDouble() : (item['kuantitas'] ?? 1.0),
         "subtotal_harga": item['subtotal_harga'] ?? 0,
-        "keterangan": item['keterangan'] ?? "", 
+        "keterangan": item['keterangan'] ?? "",
       });
     }
 
@@ -133,7 +273,7 @@ class DetailPesananController extends GetxController {
       namaCustomer: dataPelanggan['nama_pelanggan'] ?? 'Pelanggan',
       idCustomer: transaksiLama['customer_id'] ?? 0,
       noHp: dataPelanggan['no_wa'] ?? '',
-    )); 
+    ));
 
     await fetchDetailItems(transaksiLama['id'], transaksiLama['catatan']);
 
@@ -185,10 +325,10 @@ class DetailPesananController extends GetxController {
       int custId = headerData['customer_id'] ?? 0;
 
       await supabase.from('transactions').update({
-        'tipe_logistik': 'antar_jemput', 
+        'tipe_logistik': 'antar_jemput',
         'alamat_layanan': alamatBaru,
         'delivery_fee': ongkirBaru,
-        'total_tagihan': newTagihan, 
+        'total_tagihan': newTagihan,
       }).eq('id', transactionId);
 
       if (isBon && selisih != 0 && custId != 0) {
@@ -197,8 +337,8 @@ class DetailPesananController extends GetxController {
          await supabase.from('customers').update({'total_kasbon': currentKasbon + selisih}).eq('id', custId);
       }
 
-      isDataChanged = true; 
-      Get.back(); 
+      isDataChanged = true;
+      Get.back();
       await fetchDetailItems(transactionId, catatanEditCtrl.text);
       if (Get.isRegistered<HomeController>()) Get.find<HomeController>().refreshDashboard();
       Get.snackbar("Sukses", "Informasi Logistik berhasil disimpan!", backgroundColor: Colors.green, colorText: Colors.white);
@@ -214,7 +354,7 @@ class DetailPesananController extends GetxController {
       isLoading.value = true;
 
       int oldTagihan = headerData['total_tagihan'] ?? 0;
-      int selisih = subtotalAwal - oldTagihan; 
+      int selisih = subtotalAwal - oldTagihan;
 
       bool isBon = (headerData['status_pembayaran'] ?? '').toString().toLowerCase() == 'bon';
       int custId = headerData['customer_id'] ?? 0;
@@ -223,7 +363,7 @@ class DetailPesananController extends GetxController {
         'tipe_logistik': 'none',
         'alamat_layanan': null,
         'delivery_fee': 0,
-        'total_tagihan': subtotalAwal, 
+        'total_tagihan': subtotalAwal,
       }).eq('id', transactionId);
 
       if (isBon && selisih != 0 && custId != 0) {
@@ -232,8 +372,8 @@ class DetailPesananController extends GetxController {
          await supabase.from('customers').update({'total_kasbon': currentKasbon + selisih}).eq('id', custId);
       }
 
-      isDataChanged = true; 
-      Get.back(); 
+      isDataChanged = true;
+      Get.back();
       await fetchDetailItems(transactionId, catatanEditCtrl.text);
       if (Get.isRegistered<HomeController>()) Get.find<HomeController>().refreshDashboard();
       Get.snackbar("Info", "Informasi Logistik dibatalkan", backgroundColor: Colors.orange, colorText: Colors.white);
@@ -270,20 +410,20 @@ class DetailPesananController extends GetxController {
       isDataChanged = true;
 
       if (status == 'diambil') {
-        Get.back(result: true); 
+        Get.back(result: true);
         Get.snackbar("Sukses", "Pesanan telah diambil pelanggan", backgroundColor: Colors.green, colorText: Colors.white);
-      } else if (status == 'selesai') { 
-        await fetchDetailItems(id, catatanEditCtrl.text); 
+      } else if (status == 'selesai') {
+        await fetchDetailItems(id, catatanEditCtrl.text);
 
         String noWa = headerData['customers']?['no_wa'] ?? '';
         String nama = headerData['customers']?['nama_pelanggan'] ?? '';
         if (noWa.isNotEmpty && noWa != "tanpa nomor") {
              Get.snackbar("Berhasil", "Status Selesai. Silakan klik ikon WhatsApp untuk kirimi nota ke $nama", backgroundColor: Colors.blue, colorText: Colors.white, duration: const Duration(seconds: 4));
         } else {
-             Get.snackbar("Berhasil", "Status diperbarui jadi SELESAI", backgroundColor: Colors.blue, colorText: Colors.white);      
+             Get.snackbar("Berhasil", "Status diperbarui jadi SELESAI", backgroundColor: Colors.blue, colorText: Colors.white);
         }
       } else {
-        await fetchDetailItems(id, catatanEditCtrl.text); 
+        await fetchDetailItems(id, catatanEditCtrl.text);
         Get.snackbar("Berhasil", "Status diperbarui jadi ${status.toUpperCase()}", backgroundColor: Colors.blue, colorText: Colors.white);
       }
     } catch (e) {
@@ -304,7 +444,7 @@ class DetailPesananController extends GetxController {
 
       isDataChanged = true;
       Get.close(2);
-      await fetchDetailItems(trxId, catatanEditCtrl.text); 
+      await fetchDetailItems(trxId, catatanEditCtrl.text);
 
       Get.snackbar("Sukses", "Masuk ke catatan Kasbon Pelanggan", backgroundColor: Colors.orange, colorText: Colors.white);
     } catch (e) {
@@ -319,7 +459,7 @@ class DetailPesananController extends GetxController {
       String cleanText = ongkirCtrl.text.replaceAll('.', '');
       ongkir.value = int.parse(cleanText);
     }
-    Get.back(); 
+    Get.back();
   }
 
   void hapusOngkir() {
@@ -332,6 +472,10 @@ class DetailPesananController extends GetxController {
     ongkirCtrl.dispose();
     alamatCtrl.dispose();
     catatanEditCtrl.dispose();
+
+    if (isListening.value) {
+      _speech.stop();
+    }
 
     if (isDataChanged) {
       if (Get.isRegistered<PesananController>()) {
@@ -346,7 +490,7 @@ class DetailPesananController extends GetxController {
 
     String noNota = h['nomor_nota'] ?? "-";
     String namaPelanggan = h['customers']?['nama_pelanggan'] ?? "Pelanggan";
-    String kasir = userC.currentUser.value?.namaLengkap ?? "Admin"; 
+    String kasir = userC.currentUser.value?.namaLengkap ?? "Admin";
 
     String tglPesan = h['waktu_masuk'] != null ? DateFormat('dd-MM-yy HH:mm').format(DateTime.parse(h['waktu_masuk'])) : "-";
     String estSelesai = h['estimasi_selesai'] != null ? DateFormat('dd-MM-yy HH:mm').format(DateTime.parse(h['estimasi_selesai'])) : "-";
@@ -377,12 +521,12 @@ class DetailPesananController extends GetxController {
 
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.roll80, 
-        margin: pw.EdgeInsets.zero, 
+        pageFormat: PdfPageFormat.roll80,
+        margin: pw.EdgeInsets.zero,
 
         build: (pw.Context context) {
           return pw.Container(
-            color: PdfColors.white, 
+            color: PdfColors.white,
             width: double.infinity,
             padding: const pw.EdgeInsets.all(10),
             child: pw.Column(
@@ -528,7 +672,7 @@ class DetailPesananController extends GetxController {
       ),
     );
 
-    return pdf.save(); 
+    return pdf.save();
   }
 
   Future<void> cetakNotaPDF(Map<String, dynamic> h) async {
@@ -563,20 +707,20 @@ class DetailPesananController extends GetxController {
       isLoading.value = true;
 
       String cleanNumber = noWa.replaceAll(RegExp(r'[^0-9]'), '');
-      String phoneAPI = cleanNumber; 
-      String phoneCopy = cleanNumber; 
+      String phoneAPI = cleanNumber;
+      String phoneCopy = cleanNumber;
 
       if (cleanNumber.startsWith('0')) {
         phoneAPI = '62${cleanNumber.substring(1)}';
-        phoneCopy = cleanNumber; 
+        phoneCopy = cleanNumber;
       } else if (cleanNumber.startsWith('62')) {
         phoneAPI = cleanNumber;
-        phoneCopy = '0${cleanNumber.substring(2)}'; 
+        phoneCopy = '0${cleanNumber.substring(2)}';
       }
 
       String statusP = transaksi['status_pesanan'].toString().toLowerCase();
       String nota = transaksi['nomor_nota'] ?? "-";
-      int biayaOngkir = transaksi['delivery_fee'] ?? 0; 
+      int biayaOngkir = transaksi['delivery_fee'] ?? 0;
 
       StringBuffer pesan = StringBuffer();
 
@@ -621,7 +765,7 @@ class DetailPesananController extends GetxController {
       final raster = await Printing.raster(pdfBytes, pages: [0], dpi: 200).first;
       final imageBytes = await raster.toPng();
 
-      final directory = await getExternalStorageDirectory(); 
+      final directory = await getExternalStorageDirectory();
       if (directory == null) throw Exception("Gagal mengakses penyimpanan");
       final file = File('${directory.path}/Nota_$nota.png');
       await file.writeAsBytes(imageBytes);
@@ -632,9 +776,9 @@ class DetailPesananController extends GetxController {
 
       await Clipboard.setData(ClipboardData(text: phoneCopy));
       Get.snackbar(
-        "Trik Cepat! 💡", 
-        "Nomor HP $phoneCopy udah otomatis di-copy. Tinggal PASTE di pencarian WhatsApp ya!", 
-        backgroundColor: Colors.blue.shade800, 
+        "Trik Cepat! 💡",
+        "Nomor HP $phoneCopy udah otomatis di-copy. Tinggal PASTE di pencarian WhatsApp ya!",
+        backgroundColor: Colors.blue.shade800,
         colorText: Colors.white,
         duration: const Duration(seconds: 4),
       );
@@ -644,8 +788,8 @@ class DetailPesananController extends GetxController {
       if (isInstalled == true) {
         await shareWhatsapp.share(
           text: pesan.toString(),
-          phone: phoneAPI, 
-          file: XFile(file.path), 
+          phone: phoneAPI,
+          file: XFile(file.path),
         );
       } else {
         Get.snackbar("Error", "WA tidak terdeteksi di HP ini", backgroundColor: Colors.red, colorText: Colors.white);

@@ -1,13 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:laundry_app/services/sensor_service.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import 'user_controller.dart';
 import 'layanan_controller.dart';
-import 'pesanan_controller.dart'; 
+import 'pesanan_controller.dart';
 import '../views/detail_pesanan_view.dart';
 import '../views/pesanan_view.dart';
 
@@ -37,7 +39,8 @@ class TransaksiController extends GetxController {
   var isLoading = false.obs;
 
   var pelangganDipilih = {}.obs;
-
+  var isListening = false.obs;
+  late stt.SpeechToText _speech;
   var isEditMode = false.obs;
   var idTransaksiEdit = 0.obs;
 
@@ -49,6 +52,7 @@ class TransaksiController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _speech = stt.SpeechToText();
     if (Get.arguments != null) {
       pelangganDipilih.value = Get.arguments;
     }
@@ -69,8 +73,8 @@ class TransaksiController extends GetxController {
   void showOngkirDialog(BuildContext context) {
     final ongkirCtrl = TextEditingController(text: deliveryFee.value == 0 ? "" : deliveryFee.value.toString());
     Get.dialog(Dialog(
-        backgroundColor: Colors.white, 
-        surfaceTintColor: Colors.transparent, 
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -84,7 +88,7 @@ class TransaksiController extends GetxController {
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly, CurrencyFormat()],
                 decoration: InputDecoration(
-                  prefixText: "Rp ", 
+                  prefixText: "Rp ",
                   prefixStyle: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
                   filled: true,
                   fillColor: Colors.grey.shade50,
@@ -103,7 +107,7 @@ class TransaksiController extends GetxController {
                     Get.back();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2196F3), 
+                    backgroundColor: const Color(0xFF2196F3),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -192,7 +196,7 @@ class TransaksiController extends GetxController {
           .from('customers')
           .select('alamat')
           .eq('id', int.parse(idCustomer))
-          .maybeSingle(); 
+          .maybeSingle();
 
       if (data != null && data['alamat'] != null) {
         alamatCtrl.text = data['alamat'].toString();
@@ -204,7 +208,7 @@ class TransaksiController extends GetxController {
 
   Future<void> buatTransaksi(String id, String nama, String phone) async {
     if (cart.isEmpty) {
-      HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
+      HapticFeedback.heavyImpact();
       Get.snackbar("Error", "Pesanan tidak boleh kosong!", backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
@@ -215,27 +219,27 @@ class TransaksiController extends GetxController {
       String alamat = alamatCtrl.text.trim();
 
       if (alamat.isEmpty) {
-        HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
+        HapticFeedback.heavyImpact();
         Get.snackbar("Error", "Alamat antar jemput wajib diisi!", backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }
       if (hasEmoji(alamat)) {
-        HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
+        HapticFeedback.heavyImpact();
         Get.snackbar("Error", "Alamat tidak boleh mengandung emoji!", backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }
       if (alamat.length < 5) {
-        HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
+        HapticFeedback.heavyImpact();
         Get.snackbar("Error", "Alamat terlalu pendek! Minimal 5 karakter.", backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }
       if (!isPenjemputan.value && !isPengantaran.value) {
-        HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
+        HapticFeedback.heavyImpact();
         Get.snackbar("Error", "Pilih minimal satu: Penjemputan atau Pengantaran!", backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }
       if (deliveryFee.value <= 0) {
-        HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
+        HapticFeedback.heavyImpact();
         Get.snackbar("Error", "Ongkos kirim wajib diisi jika antar jemput aktif!", backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }
@@ -251,7 +255,7 @@ class TransaksiController extends GetxController {
 
     String catatan = catatanCtrl.text.trim();
     if (catatan.isNotEmpty && hasEmoji(catatan)) {
-      HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
+      HapticFeedback.heavyImpact();
       Get.snackbar("Error", "Catatan tidak boleh mengandung emoji!", backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
@@ -259,16 +263,37 @@ class TransaksiController extends GetxController {
     try {
       isLoading.value = true;
 
+      String? urlFotoBukti;
+      if (fotoBukti.value != null) {
+        try {
+          final file = File(fotoBukti.value!.path);
+          final fileExt = fotoBukti.value!.path.split('.').last;
+          final fileName = 'nota_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+
+          await supabase.storage.from('foto_baju').upload(fileName, file);
+
+          urlFotoBukti = supabase.storage.from('foto_baju').getPublicUrl(fileName);
+        } catch (e) {
+          debugPrint("Gagal upload foto ke Bucket: $e");
+        }
+      }
+
       if (isEditMode.value) {
         int trkId = idTransaksiEdit.value;
 
-        await supabase.from('transactions').update({
+        final Map<String, dynamic> updateData = {
           'total_tagihan': totalTagihan,
           'tipe_logistik': logistikType,
           'delivery_fee': deliveryFee.value,
           'alamat_layanan': isAntarJemput.value ? alamatCtrl.text : null,
           'catatan': catatan.isNotEmpty ? catatan : null,
-        }).eq('id', trkId);
+        };
+
+        if (urlFotoBukti != null) {
+          updateData['foto_bukti'] = urlFotoBukti;
+        }
+
+        await supabase.from('transactions').update(updateData).eq('id', trkId);
 
         await supabase.from('transaction_details').delete().eq('transaction_id', trkId);
 
@@ -283,8 +308,8 @@ class TransaksiController extends GetxController {
         isEditMode.value = false;
         idTransaksiEdit.value = 0;
 
-        HapticFeedback.mediumImpact(); // GETAR SUKSES HALUS
-        Get.back(result: true); 
+        HapticFeedback.mediumImpact();
+        Get.back(result: true);
 
         Get.snackbar("Sukses", "Transaksi berhasil diperbarui!", backgroundColor: Colors.green, colorText: Colors.white);
       } else {
@@ -305,6 +330,7 @@ class TransaksiController extends GetxController {
           'estimasi_selesai': DateTime.now().add(const Duration(days: 2)).toIso8601String(),
           'alamat_layanan': isAntarJemput.value ? alamatCtrl.text : null,
           'catatan': catatan.isNotEmpty ? catatan : null,
+          'foto_bukti': urlFotoBukti,
         }).select().single();
 
         final List<Map<String, dynamic>> details = cart.map((item) => {
@@ -316,7 +342,7 @@ class TransaksiController extends GetxController {
 
         await supabase.from('transaction_details').insert(details);
 
-        HapticFeedback.mediumImpact(); // GETAR SUKSES HALUS
+        HapticFeedback.mediumImpact();
 
         Get.defaultDialog(
           title: "Sukses",
@@ -334,7 +360,7 @@ class TransaksiController extends GetxController {
             ),
             ElevatedButton(
               onPressed: () async {
-                Get.back(); 
+                Get.back();
 
                 Get.showOverlay(
                   asyncFunction: () async {
@@ -370,18 +396,84 @@ class TransaksiController extends GetxController {
       alamatCtrl.clear();
       deliveryFee.value = 0;
       isAntarJemput.value = false;
+      fotoBukti.value = null;
 
     } catch (e) {
-      fotoBukti.value = null; 
-      HapticFeedback.vibrate(); // GETAR ERROR SYSTEM
+      HapticFeedback.vibrate();
       Get.snackbar("Gagal", "Terjadi kesalahan: ", backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
   }
 
+  void toggleMic() async {
+  if (isListening.value) {
+    isListening.value = false;
+    await _speech.stop();
+    HapticFeedback.lightImpact();
+    return;
+  }
+
+  bool available = await _speech.initialize(
+    onStatus: (val) {
+      if (val == 'done' || val == 'notListening') {
+        isListening.value = false;
+        _speech.stop();
+      }
+    },
+    onError: (val) {
+      isListening.value = false;
+      _speech.stop();
+    },
+  );
+
+  if (available) {
+    isListening.value = true;
+    HapticFeedback.lightImpact();
+
+    final String existingText = catatanCtrl.text.trimRight();
+    final String prefix = existingText.isEmpty ? '' : '$existingText ';
+
+    _speech.listen(
+      localeId: 'id_ID',
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 3),
+      onResult: (val) {
+        catatanCtrl.value = TextEditingValue(
+          text: prefix + val.recognizedWords,
+          selection: TextSelection.collapsed(
+            offset: (prefix + val.recognizedWords).length,
+          ),
+        );
+      },
+    );
+  } else {
+    Get.snackbar(
+      "Izin Ditolak",
+      "Aplikasi tidak mendapat izin Microphone.",
+      backgroundColor: Colors.orange,
+      colorText: Colors.white,
+    );
+  }
+}
+
+void clearAll() {
+  cart.clear();
+  catatanCtrl.clear();
+  alamatCtrl.clear();
+  deliveryFee.value = 0;
+  isAntarJemput.value = false;
+  isPenjemputan.value = true;
+  isPengantaran.value = true;
+  fotoBukti.value = null;
+  isListening.value = false;
+  if (_speech.isListening) _speech.stop();
+}
+
   @override
+
   void onClose() {
+      if (isListening.value) _speech.stop();
     catatanCtrl.dispose();
     alamatCtrl.dispose();
     super.onClose();

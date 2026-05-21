@@ -6,7 +6,7 @@ import 'package:laundry_app/views/pembayaran_view.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../controllers/detail_pesanan_controller.dart';
 import '../controllers/pesanan_controller.dart';
-import '../controllers/pembayaran_controller.dart'; 
+import '../controllers/pembayaran_controller.dart';
 
 class DetailPesananView extends StatelessWidget {
   final Map<String, dynamic> data;
@@ -32,15 +32,15 @@ class DetailPesananView extends StatelessWidget {
     return WillPopScope(
       onWillPop: () async {
         Get.back(result: detailC.isDataChanged);
-        return false; 
+        return false;
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F7FA), 
+        backgroundColor: const Color(0xFFF5F7FA),
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF102A43)), 
+            icon: const Icon(Icons.arrow_back, color: Color(0xFF102A43)),
             onPressed: () {
               Get.back(result: detailC.isDataChanged);
             }
@@ -131,7 +131,7 @@ class DetailPesananView extends StatelessWidget {
                                       width: double.infinity,
                                       child: ElevatedButton(
                                         onPressed: () {
-                                          Get.back(); 
+                                          Get.back();
                                           final payC = Get.put(PembayaranController());
                                           payC.totalTagihan.value = h['total_tagihan'] ?? 0;
                                           payC.idTransaksi.value = h['id'] ?? 0;
@@ -204,13 +204,13 @@ class DetailPesananView extends StatelessWidget {
 
                              if (!isLunas && !isBon) {
                                Get.snackbar(
-                                 "Tahan Dulu!", 
+                                 "Tahan Dulu!",
                                  "Pesanan belum dibayar. Silakan proses pembayaran atau jadikan Kasbon (Bon) terlebih dahulu sebelum barang diambil.",
                                  backgroundColor: Colors.red.shade700,
                                  colorText: Colors.white,
                                  duration: const Duration(seconds: 4),
                                );
-                               return; 
+                               return;
                              }
 
                              detailC.updateStatus(h['id'], 'diambil');
@@ -256,7 +256,7 @@ class DetailPesananView extends StatelessWidget {
           bool isLunas = h['status_pembayaran'].toString().toLowerCase() == 'lunas';
           bool isBon = h['status_pembayaran'].toString().toLowerCase() == 'bon';
 
-          bool isLogistikLocked = isLocked || isLunas || isBon; 
+          bool isLogistikLocked = isLocked || isLunas || isBon;
 
           String tglMasuk = h['waktu_masuk'] != null
               ? DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(h['waktu_masuk']))
@@ -284,7 +284,7 @@ class DetailPesananView extends StatelessWidget {
                           color: isLunas ? Colors.green : (isBon ? Colors.orange : Colors.red.shade700),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Text(h['status_pembayaran'] ?? "Belum Lunas", style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),                 
+                        child: Text(h['status_pembayaran'] ?? "Belum Lunas", style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -322,7 +322,7 @@ class DetailPesananView extends StatelessWidget {
                             children: [
                                if (hasWa)
                                 IconButton(
-                                  icon: const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, size: 28), 
+                                  icon: const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.green, size: 28),
                                   onPressed: () {
                                     detailC.kirimNotaWA(
                                       transaksi: h,
@@ -332,7 +332,7 @@ class DetailPesananView extends StatelessWidget {
                                   }
                                 ),
                               IconButton(
-                                icon: const Icon(Icons.print_outlined, color: Color(0xFF2196F3), size: 28), 
+                                icon: const Icon(Icons.print_outlined, color: Color(0xFF2196F3), size: 28),
                                 onPressed: () {
                                   detailC.cetakNotaPDF(h);
                                 }
@@ -349,9 +349,9 @@ class DetailPesananView extends StatelessWidget {
                 Container(
                   color: Colors.white,
                   child: Theme(
-                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent), 
+                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
-                      initiallyExpanded: detailC.isAntarJemputExpanded.value, 
+                      initiallyExpanded: detailC.isAntarJemputExpanded.value,
                       onExpansionChanged: (val) => detailC.isAntarJemputExpanded.value = val,
                       title: const Text("Informasi Antar/Jemput", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
                       children: [
@@ -360,17 +360,17 @@ class DetailPesananView extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              detailC.isPengantaranSaved.value 
+                              detailC.isPengantaranSaved.value
                                   ? Expanded(child: Text(detailC.alamatCtrl.text.isEmpty ? "Alamat tersimpan" : detailC.alamatCtrl.text, style: const TextStyle(color: Colors.black87)))
                                   : Text("Belum ada pengantaran/jemputan", style: TextStyle(color: Colors.grey.shade700)),
                               detailC.isPengantaranSaved.value
                                   ? IconButton(
                                       icon: const Icon(Icons.edit, color: Colors.grey, size: 20),
-                                      onPressed: isLogistikLocked ? null : () => _showTambahPengantaranBottomSheet(context, h, h['status_pesanan']), 
+                                      onPressed: isLogistikLocked ? null : () => _showTambahPengantaranBottomSheet(context, h, h['status_pesanan']),
 
                                     )
                                   : ElevatedButton(
-                                      onPressed: isLogistikLocked ? null : () => _showTambahPengantaranBottomSheet(context, h, h['status_pesanan']), 
+                                      onPressed: isLogistikLocked ? null : () => _showTambahPengantaranBottomSheet(context, h, h['status_pesanan']),
 
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.orange,
@@ -399,13 +399,13 @@ class DetailPesananView extends StatelessWidget {
                         children: [
                           const Text("Detail Pesanan", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
 
-                          if (!isLogistikLocked) 
+                          if (!isLogistikLocked)
                             TextButton(
                               onPressed: () async {
                                 await detailC.goToEditLayanan(h);
                                 detailC.fetchDetailItems(h['id'], h['catatan']);
-                                detailC.isDataChanged = true; 
-                              }, 
+                                detailC.isDataChanged = true;
+                              },
                               child: const Text("Edit", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 14))
                             )
                         ],
@@ -420,8 +420,8 @@ class DetailPesananView extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(12), 
-                                  decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(12)), 
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(12)),
                                   child: const Icon(Icons.checkroom, color: Colors.blue, size: 28)
                                 ),
                                 const SizedBox(width: 16),
@@ -470,40 +470,136 @@ class DetailPesananView extends StatelessWidget {
 
                 Container(
                   width: double.infinity,
-                  color: Colors.white, 
+                  color: Colors.white,
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Informasi Tambahan (Catatan)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: detailC.catatanEditCtrl,
-                        maxLines: 2,
-                        readOnly: isLocked,
-                        decoration: InputDecoration(
-                          hintText: "Misalnya : Celana jeans luntur",
-                          filled: true, fillColor: isLocked ? Colors.grey.shade200 : Colors.grey.shade50,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        ),
-                      ),
-                      if (!isLocked) ...[
-                        const SizedBox(height: 12),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: ElevatedButton(
-                            onPressed: () => detailC.simpanCatatan(h['id']),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade50,
-                              foregroundColor: Colors.blue,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      const Text("Informasi Tambahan (Catatan)",
+    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
+const SizedBox(height: 16),
+
+TextField(
+  controller: detailC.catatanEditCtrl,
+  maxLines: 2,
+  readOnly: isLocked || isLunas,
+  onTapOutside: (event) {
+    FocusManager.instance.primaryFocus?.unfocus();
+  },
+  decoration: InputDecoration(
+    hintText: "Misalnya : Celana jeans luntur",
+    filled: true,
+    fillColor: (isLocked || isLunas) ? Colors.grey.shade200 : Colors.grey.shade50,
+    border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    suffixIcon: (isLocked || isLunas)
+        ? null
+        : Obx(() => IconButton(
+              icon: Icon(
+                detailC.isListening.value ? Icons.mic : Icons.mic_none,
+                color: detailC.isListening.value ? Colors.red : Colors.grey,
+              ),
+              onPressed: () => detailC.toggleMic(),
+            )),
+  ),
+),
+if (!(isLocked || isLunas)) ...[
+  const SizedBox(height: 12),
+  Align(
+    alignment: Alignment.centerRight,
+    child: ElevatedButton(
+      onPressed: () => detailC.simpanCatatan(h['id']),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue.shade50,
+        foregroundColor: Colors.blue,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      child: const Text("Simpan Catatan"),
+    ),
+  )
+],
+
+                      const SizedBox(height: 24),
+                      const Text("Foto Bukti Pakaian", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
+                      const SizedBox(height: 12),
+                      Obx(() {
+                        String? urlFoto = detailC.fotoUrl.value.isNotEmpty ? detailC.fotoUrl.value : h['foto_bukti'];
+
+                        if (urlFoto != null && urlFoto.isNotEmpty) {
+                          return Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  urlFoto,
+                                  width: double.infinity,
+                                  height: 220,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => Container(
+                                    height: 220, color: Colors.grey.shade200,
+                                    child: const Center(child: Icon(Icons.broken_image, color: Colors.grey, size: 50)),
+                                  ),
+                                ),
+                              ),
+                              if (!(isLocked || isLunas))
+                                Positioned(
+                                  top: 10,
+                                  right: 10,
+                                  child: Row(
+                                    children: [
+                                      InkWell(
+                                        onTap: () => detailC.ubahAtauTambahFoto(h['id']),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
+                                          child: const Icon(Icons.edit, color: Colors.white, size: 20),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      InkWell(
+                                        onTap: () => detailC.hapusFotoBukti(h['id'], urlFoto),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                                          child: const Icon(Icons.delete_forever, color: Colors.white, size: 20),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                            ],
+                          );
+                        } else {
+                          if (isLocked || isLunas) {
+                            return const Text("Tidak ada foto bukti terlampir.", style: TextStyle(color: Colors.grey));
+                          }
+                          return InkWell(
+                            onTap: () => detailC.ubahAtauTambahFoto(h['id']),
+                            child: Container(
+                              width: double.infinity,
+                              height: 130,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid, width: 1.5),
+                              ),
+                              child: const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_a_photo, color: Colors.blue, size: 42),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    "Tambah Foto Bukti",
+                                    style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500, fontSize: 13),
+                                  ),
+                                ],
+                              ),
                             ),
-                            child: const Text("Simpan Catatan"),
-                          ),
-                        )
-                      ]
+                          );
+                        }
+                      }),
                     ],
                   ),
                 ),
@@ -552,14 +648,14 @@ class DetailPesananView extends StatelessWidget {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
             ),
-            const SizedBox(height: 24), 
+            const SizedBox(height: 24),
 
             Obx(() {
               int subtotalLayanan = (h['total_tagihan'] ?? 0) - (h['delivery_fee'] ?? 0);
 
               if (detailC.ongkir.value == 0) {
                 return GestureDetector(
-                  onTap: () => _showDialogTambahOngkir(), 
+                  onTap: () => _showDialogTambahOngkir(),
                   child: const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8.0),
                     child: Text("+ Tambah Ongkir", style: TextStyle(color: Color(0xFF2196F3), fontWeight: FontWeight.bold, fontSize: 15)),
@@ -591,9 +687,9 @@ class DetailPesananView extends StatelessWidget {
                         children: [
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: () => detailC.batalkanPengantaran(h['id'], subtotalLayanan), 
+                              onPressed: () => detailC.batalkanPengantaran(h['id'], subtotalLayanan),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFB71C1C), 
+                                backgroundColor: const Color(0xFFB71C1C),
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                               ),
@@ -605,7 +701,7 @@ class DetailPesananView extends StatelessWidget {
                             child: ElevatedButton(
                               onPressed: detailC.isLoading.value ? null : () {
                                  detailC.konfirmasiSimpanPengantaran(h['id'], subtotalLayanan);
-                              }, 
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF2196F3),
                                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -622,7 +718,7 @@ class DetailPesananView extends StatelessWidget {
                         child: ElevatedButton(
                           onPressed: detailC.isLoading.value ? null : () {
                              detailC.konfirmasiSimpanPengantaran(h['id'], subtotalLayanan);
-                          }, 
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF2196F3),
                             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -660,7 +756,7 @@ class DetailPesananView extends StatelessWidget {
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
-                  CurrencyFormat(), 
+                  CurrencyFormat(),
                 ],
                 decoration: InputDecoration(
                   prefixText: "Rp ",
@@ -686,7 +782,7 @@ class DetailPesananView extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                         detailC.simpanOngkir(); 
+                         detailC.simpanOngkir();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2196F3),
