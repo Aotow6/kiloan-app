@@ -1,0 +1,50 @@
+name: laundry_app
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  flutter:
+    sdk: flutter
+  get: ^4.6.6
+  font_awesome_flutter: ^10.7.0
+  supabase_flutter: ^2.0.2 
+  intl: ^0.19.0
+  flutter_dotenv: ^6.0.0
+  pdf: ^3.12.0
+  printing: ^5.14.3
+  path_provider: ^2.1.5
+  url_launcher: ^6.3.2
+  share_whatsapp: ^1.0.2
+  share_plus: ^12.0.2
+  flutter_native_contact_picker: ^0.0.11
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.4.7
+  flutter_launcher_icons: ^0.14.4
+
+flutter:
+  uses-material-design: true
+
+  assets:
+  - .env
+  - assets/images/
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: "assets/images/splash.png"
+  android_12:
+    image: "assets/images/splash.png"
+    icon_background_color: "#FFFFFF"
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/icon.png"
+  min_sdk_android: 21
