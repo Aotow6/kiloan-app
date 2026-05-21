@@ -2,18 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:laundry_app/controllers/error_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:flutter/services.dart';
+
 import 'user_controller.dart';
-import '../models/outlet_model.dart'; 
+import '../models/outlet_model.dart';
 
 class OutletController extends GetxController {
   final supabase = Supabase.instance.client;
   final userC = Get.find<UserController>();
+  final LocalAuthentication auth = LocalAuthentication();
 
   final namaCtrl = TextEditingController();
   final alamatCtrl = TextEditingController();
 
   var jamBuka = "08:00".obs;
   var jamTutup = "20:00".obs;
+
+  var isAllowKasbon = true.obs;
 
   var isLoading = false.obs;
 
@@ -26,7 +32,6 @@ class OutletController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-
     if (cachedOutlet != null) {
       _populateForm(cachedOutlet!);
       isFirstLoad = false;
@@ -36,7 +41,6 @@ class OutletController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-
     fetchOutletData(showLoading: isFirstLoad);
   }
 
@@ -45,6 +49,7 @@ class OutletController extends GetxController {
     alamatCtrl.text = outlet.alamat ?? "";
     jamBuka.value = outlet.jamBuka ?? "08:00";
     jamTutup.value = outlet.jamTutup ?? "20:00";
+    isAllowKasbon.value = outlet.allowKasbon;
   }
 
   void clearErrors() {
@@ -71,8 +76,7 @@ class OutletController extends GetxController {
 
       if (data != null) {
         final outlet = OutletModel.fromMap(data);
-        cachedOutlet = outlet; 
-
+        cachedOutlet = outlet;
         _populateForm(outlet);
       }
     } catch (e) {
@@ -84,7 +88,6 @@ class OutletController extends GetxController {
 
   Future<void> pilihJam(BuildContext context, bool isBuka) async {
     String currentTime = isBuka ? jamBuka.value : jamTutup.value;
-
     int currentHour = 8;
     int currentMin = 0;
 
@@ -113,6 +116,28 @@ class OutletController extends GetxController {
       } else {
         jamTutup.value = formattedTime;
       }
+    }
+  }
+
+  Future<bool> _authenticateUser() async {
+    try {
+      bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
+      bool canAuthenticate = canAuthenticateWithBiometrics || await auth.isDeviceSupported();
+
+      if (!canAuthenticate) {
+        return true;
+      }
+
+      return await auth.authenticate(
+        localizedReason: 'Verifikasi identitas untuk mengubah profil outlet',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: false,
+        ),
+      );
+    } on PlatformException catch (e) {
+      debugPrint("Error Biometric: $e");
+      return false;
     }
   }
 
@@ -149,6 +174,13 @@ class OutletController extends GetxController {
        return;
     }
 
+    bool isAuthorized = await _authenticateUser();
+    if (!isAuthorized) {
+      HapticFeedback.heavyImpact();
+      Get.snackbar("Akses Ditolak", "Gagal memverifikasi identitas. Perubahan dibatalkan.", backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
     try {
       isLoading.value = true;
 
@@ -157,6 +189,7 @@ class OutletController extends GetxController {
         'alamat': alamat,
         'jam_buka': jamBuka.value,
         'jam_tutup': jamTutup.value,
+        'allow_kasbon': isAllowKasbon.value,
       }).eq('id', outletId);
 
       cachedOutlet = OutletModel(
@@ -164,12 +197,14 @@ class OutletController extends GetxController {
          namaOutlet: nama,
          alamat: alamat,
          jamBuka: jamBuka.value,
-         jamTutup: jamTutup.value
+         jamTutup: jamTutup.value,
+         allowKasbon: isAllowKasbon.value,
       );
 
+      HapticFeedback.mediumImpact();
       Get.back();
       Get.snackbar(
-        "Sukses", "Profil Outlet berhasil diperbarui!", 
+        "Sukses", "Profil Outlet berhasil diperbarui!",
         backgroundColor: Colors.green, colorText: Colors.white,
       );
 

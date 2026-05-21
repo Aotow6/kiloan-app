@@ -21,7 +21,7 @@ class LaporanView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      homeC.changeBottomNav(2); 
+      homeC.changeBottomNav(2);
     });
 
     if (homeC.userC.currentUser.value?.role?.toLowerCase() == 'kasir') {
@@ -55,8 +55,8 @@ class LaporanView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(
-            'assets/images/app.png', 
-            height: 32, 
+            'assets/images/app.png',
+            height: 32,
             width: 32,
           ),
           const SizedBox(width: 8),
@@ -140,128 +140,135 @@ class LaporanView extends StatelessWidget {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
+              return RefreshIndicator(
+                onRefresh: () async {
+                  await lapC.prosesLaporan();
+                },
+                color: const Color(0xFF2196F3),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
 
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5))
+                          ],
                         ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: const [
-                          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 5))
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            "Total Pendapatan Kas Bulanan",
-                            style: TextStyle(color: Colors.white70, fontSize: 14)
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            formatRupiah(lapC.totalPemasukan.value),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold
+                        child: Column(
+                          children: [
+                            const Text(
+                              "Total Pendapatan Kas Bulanan",
+                              style: TextStyle(color: Colors.white70, fontSize: 14)
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            Text(
+                              formatRupiah(lapC.totalPemasukan.value),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(12)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(12)
+                              ),
+                              child: const Icon(
+                                Icons.receipt_long,
+                                color: Color(0xFF2196F3),
+                                size: 30
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.receipt_long,
-                              color: Color(0xFF2196F3),
-                              size: 30
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "Total Pesanan Layanan",
-                                  style: TextStyle(fontSize: 14, color: Colors.grey)
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "${lapC.totalPesanan.value} Transaksi",
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF102A43)
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Total Pesanan Layanan",
+                                    style: TextStyle(fontSize: 14, color: Colors.grey)
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
-                        ],
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "${lapC.totalPesanan.value} Transaksi",
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF102A43)
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.orange.shade100),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.shade50,
-                              borderRadius: BorderRadius.circular(12)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.orange.shade100),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.shade50,
+                                borderRadius: BorderRadius.circular(12)
+                              ),
+                              child: const Icon(Icons.money_off, color: Colors.orange, size: 30),
                             ),
-                            child: const Icon(Icons.money_off, color: Colors.orange, size: 30),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text("Estimasi Piutang Baru (Bulan Ini)", style: TextStyle(fontSize: 14, color: Colors.grey)),
-                                const SizedBox(height: 4),
-                                Text(formatRupiah(lapC.totalPiutang.value), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange)),
-                              ],
-                            ),
-                          )
-                        ],
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text("Estimasi Piutang Baru (Bulan Ini)", style: TextStyle(fontSize: 14, color: Colors.grey)),
+                                  const SizedBox(height: 4),
+                                  Text(formatRupiah(lapC.totalPiutang.value), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange)),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             }),

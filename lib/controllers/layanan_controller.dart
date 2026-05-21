@@ -267,31 +267,33 @@ class LayananController extends GetxController {
     }
   }
 
-  void hapusLayanan(int id, String nama) {
-    Get.defaultDialog(
-      title: "Hapus Layanan",
-      middleText: "Yakin hapus $nama?",
-      textCancel: "Batal",
-      textConfirm: "Hapus",
-      confirmTextColor: Colors.white,
-      buttonColor: Colors.red,
-      onConfirm: () async {
-        try {
+ void hapusLayanan(int id, String nama) {
+  Get.defaultDialog(
+    title: "Hapus Layanan",
+    middleText: "Yakin hapus $nama?",
+    textCancel: "Batal",
+    textConfirm: "Hapus",
+    confirmTextColor: Colors.white,
+    buttonColor: Colors.red,
+    onConfirm: () async {
+      try {
+        await supabase.from('services').update({
+          'deleted_at': DateTime.now().toUtc().toIso8601String()
+        }).eq('id', id);
 
-          await supabase.from('services').update({
-            'deleted_at': DateTime.now().toUtc().toIso8601String()
-          }).eq('id', id);
-
-          await supabase.from('services').delete().eq('id', id);
-          fetchServices(); 
-          Get.back(); 
-          Get.snackbar("Berhasil", "$nama telah dihapus", backgroundColor: Colors.red, colorText: Colors.white);
-        } catch (e) {
-          ErrorHandler.show(e);
-        }
-      },
-    );
-  }
+        Get.back();
+        await fetchServices();
+        Get.snackbar(
+          "Berhasil", "$nama telah dihapus",
+          backgroundColor: Colors.red, colorText: Colors.white,
+        );
+      } catch (e) {
+        Get.back();
+        ErrorHandler.show(e);
+      }
+    },
+  );
+}
 
   List<String> get filterOptions {
     var categories = listServices.map((e) => e['kategori'].toString()).toSet().toList();

@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:laundry_app/views/home_view.dart';
 import 'package:laundry_app/views/laporan_view.dart';
 import 'package:laundry_app/views/pengaturan_view.dart';
+import 'package:laundry_app/views/kelola_pelanggan_view.dart';
+import 'package:laundry_app/views/profil_view.dart';
 import '../../controllers/home_controller.dart';
 import '../../controllers/pelanggan_controller.dart';
 import '../pesanan_view.dart';
@@ -16,39 +18,35 @@ class CustomBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
+    bool isKasir = homeC.userC.currentUser.value?.role?.toLowerCase() == 'kasir';
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Container(
-
       height: 80 + bottomPadding,
       color: Colors.transparent,
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
           Container(
-
             height: 65 + bottomPadding,
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.15), blurRadius: 10, offset: const Offset(0, -3))],
             ),
           ),
-
           Padding(
             padding: EdgeInsets.only(bottom: bottomPadding),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                _bottomNavItem(icon: Icons.home_filled, label: "Beranda", index: 0),
-                _bottomNavItem(icon: Icons.receipt_long, label: "Pesanan", index: 1),
+                _bottomNavItem(icon: Icons.home_filled, label: "Beranda", index: 0, isKasir: isKasir),
+                _bottomNavItem(icon: Icons.receipt_long, label: "Pesanan", index: 1, isKasir: isKasir),
 
                 GestureDetector(
                   onTap: () => _showTransactionBottomSheet(),
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 8),
-                    height: 64,
-                    width: 64,
+                    height: 64, width: 64,
                     decoration: BoxDecoration(
                       color: const Color(0xFF2196F3),
                       shape: BoxShape.circle,
@@ -59,8 +57,18 @@ class CustomBottomNav extends StatelessWidget {
                   ),
                 ),
 
-                _bottomNavItem(icon: Icons.insert_chart, label: "Laporan", index: 2),
-                _bottomNavItem(icon: Icons.person, label: "Pengaturan", index: 3),
+                _bottomNavItem(
+                  icon: isKasir ? Icons.people_alt : Icons.insert_chart,
+                  label: isKasir ? "Pelanggan" : "Laporan",
+                  index: 2,
+                  isKasir: isKasir
+                ),
+                _bottomNavItem(
+                  icon: isKasir ? Icons.person : Icons.settings,
+                  label: isKasir ? "Pengaturan" : "Pengaturan",
+                  index: 3,
+                  isKasir: isKasir
+                ),
               ],
             ),
           )
@@ -69,30 +77,26 @@ class CustomBottomNav extends StatelessWidget {
     );
   }
 
-  Widget _bottomNavItem({required IconData icon, required String label, required int index}) {
+  Widget _bottomNavItem({required IconData icon, required String label, required int index, required bool isKasir}) {
     return Expanded(
       child: InkWell(
         onTap: () async {
-          int previousIndex = homeC.bottomNavIndex.value; 
-
+          int previousIndex = homeC.bottomNavIndex.value;
           homeC.changeBottomNav(index);
 
           if (index == 0) {
             Get.offAll(() => HomeView());
           } else if (index == 1) {
             await Get.to(() => PesananView());
-            homeC.changeBottomNav(previousIndex); 
-
-          } else if (index == 3) {
-            await Get.to(() => PengaturanView()); 
             homeC.changeBottomNav(previousIndex);
           } else if (index == 2) {
-            await Get.to(() => LaporanView()); 
+            isKasir ? await Get.to(() => KelolaPelangganView()) : await Get.to(() => LaporanView());
+            homeC.changeBottomNav(previousIndex);
+          } else if (index == 3) {
+            isKasir ? await Get.to(() => PengaturanView()) : await Get.to(() => PengaturanView());
             homeC.changeBottomNav(previousIndex);
           }
         },
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
         child: SizedBox(
           height: 65,
           child: Obx(() => Column(
@@ -100,14 +104,7 @@ class CustomBottomNav extends StatelessWidget {
             children: [
               Icon(icon, color: homeC.bottomNavIndex.value == index ? const Color(0xFF2196F3) : Colors.grey.shade400, size: 26),
               const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: homeC.bottomNavIndex.value == index ? FontWeight.bold : FontWeight.normal,
-                  color: homeC.bottomNavIndex.value == index ? const Color(0xFF2196F3) : Colors.grey.shade500,
-                ),
-              ),
+              Text(label, style: TextStyle(fontSize: 11, color: homeC.bottomNavIndex.value == index ? const Color(0xFF2196F3) : Colors.grey.shade500)),
             ],
           )),
         ),

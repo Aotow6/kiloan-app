@@ -21,7 +21,8 @@ class KelolaLayananView extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF102A43)),
           onPressed: () => Get.back(),
         ),
-        title: const Text("Kelola Layanan", style: TextStyle(color: Color(0xFF102A43), fontWeight: FontWeight.bold)),
+        title: const Text("Kelola Layanan",
+            style: TextStyle(color: Color(0xFF102A43), fontWeight: FontWeight.bold)),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF2196F3),
@@ -48,9 +49,15 @@ class KelolaLayananView extends StatelessWidget {
                       prefixIcon: const Icon(Icons.search, color: Colors.grey),
                       filled: true,
                       fillColor: Colors.grey.shade50,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF2196F3))),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade200)),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade200)),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF2196F3))),
                       contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     ),
                   ),
@@ -71,11 +78,14 @@ class KelolaLayananView extends StatelessWidget {
                           isExpanded: true,
                           value: layC.selectedFilter.value,
                           icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-                          style: const TextStyle(color: Color(0xFF102A43), fontSize: 14, fontWeight: FontWeight.w500),
+                          style: const TextStyle(
+                              color: Color(0xFF102A43),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500),
                           items: layC.filterOptions.map((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
-                              child: Text(value.capitalizeFirst ?? value), 
+                              child: Text(value.capitalizeFirst ?? value),
                             );
                           }).toList(),
                           onChanged: (newValue) {
@@ -101,54 +111,79 @@ class KelolaLayananView extends StatelessWidget {
               var groupedData = layC.groupedServices;
 
               if (groupedData.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                return RefreshIndicator(
+                  onRefresh: () => layC.fetchServices(),
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     children: [
-                      Icon(Icons.search_off, size: 60, color: Colors.grey.shade300),
-                      const SizedBox(height: 16),
-                      Text("Data tidak ditemukan", style: TextStyle(color: Colors.grey.shade500, fontSize: 16)),
+                      SizedBox(
+                        height: 400,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.search_off, size: 60, color: Colors.grey.shade300),
+                              const SizedBox(height: 16),
+                              Text("Data tidak ditemukan",
+                                  style: TextStyle(
+                                      color: Colors.grey.shade500, fontSize: 16)),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 );
               }
 
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                itemCount: groupedData.length,
-                itemBuilder: (context, index) {
-                  String kategori = groupedData.keys.elementAt(index);
-                  List<Map<String, dynamic>> services = groupedData[kategori]!;
+              return RefreshIndicator(
+                onRefresh: () => layC.fetchServices(),
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  itemCount: groupedData.length,
+                  itemBuilder: (context, index) {
+                    String kategori = groupedData.keys.elementAt(index);
+                    List<Map<String, dynamic>> services = groupedData[kategori]!;
+                    bool isExpanded = layC.expandedCategories[kategori] ?? false;
 
-                  bool isExpanded = layC.expandedCategories[kategori] ?? false;
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      InkWell(
-                        onTap: () => layC.toggleKategori(kategori),
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 10, bottom: 12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                kategori.capitalizeFirst ?? kategori,
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF102A43)),
-                              ),
-                              Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, color: Colors.grey),
-                            ],
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        InkWell(
+                          onTap: () => layC.toggleKategori(kategori),
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 10, bottom: 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  kategori.capitalizeFirst ?? kategori,
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF102A43)),
+                                ),
+                                Icon(
+                                  isExpanded
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: Colors.grey,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-
-                      if (isExpanded)
-                        ...services.map((service) => _buildServiceItem(context, service, kategori)).toList(),
-
-                      const Divider(height: 24),
-                    ],
-                  );
-                },
+                        if (isExpanded)
+                          ...services
+                              .map((service) =>
+                                  _buildServiceItem(context, service, kategori))
+                              .toList(),
+                        const Divider(height: 24),
+                      ],
+                    );
+                  },
+                ),
               );
             }),
           ),
@@ -157,10 +192,13 @@ class KelolaLayananView extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceItem(BuildContext context, Map<String, dynamic> service, String kategori) {
-    String hargaFormat = service['harga'].toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+  Widget _buildServiceItem(
+      BuildContext context, Map<String, dynamic> service, String kategori) {
+    String hargaFormat = service['harga'].toString().replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
     int jam = service['durasi_jam'] as int;
-    String durasiText = jam >= 24 && jam % 24 == 0 ? "${jam ~/ 24} Hari" : "$jam Jam";
+    String durasiText =
+        jam >= 24 && jam % 24 == 0 ? "${jam ~/ 24} Hari" : "$jam Jam";
 
     IconData getIcon() {
       String kat = kategori.toLowerCase();
@@ -193,13 +231,23 @@ class KelolaLayananView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  service['nama_layanan'].toString().split(' ').map((word) => word.capitalizeFirst).join(' '),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43)),
+                  service['nama_layanan']
+                      .toString()
+                      .split(' ')
+                      .map((word) => word.capitalizeFirst)
+                      .join(' '),
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF102A43)),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   "Rp $hargaFormat / ${service['satuan']}",
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF102A43)),
+                  style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF102A43)),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -215,7 +263,8 @@ class KelolaLayananView extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.red),
-            onPressed: () => layC.hapusLayanan(service['id'] as int, service['nama_layanan'].toString()),
+            onPressed: () => layC.hapusLayanan(
+                service['id'] as int, service['nama_layanan'].toString()),
           )
         ],
       ),
@@ -229,87 +278,97 @@ class KelolaLayananView extends StatelessWidget {
 
     Get.bottomSheet(
       Container(
-
         padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPadding),
-        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Edit Layanan", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text("Edit Layanan",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
-
               Obx(() => TextField(
-                controller: layC.kategoriCtrl,
-                textCapitalization: TextCapitalization.none,
-
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
-                ],
-                decoration: InputDecoration(
-                  labelText: "Kategori",
-                  errorText: layC.errKategori.value,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              )),
+                    controller: layC.kategoriCtrl,
+                    textCapitalization: TextCapitalization.none,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
+                    ],
+                    decoration: InputDecoration(
+                      labelText: "Kategori",
+                      errorText: layC.errKategori.value,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  )),
               const SizedBox(height: 16),
-
               Obx(() => TextField(
-                controller: layC.namaLayananCtrl,
-                textCapitalization: TextCapitalization.none, 
-
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
-                ],
-                decoration: InputDecoration(
-                  labelText: "Nama Layanan",
-                  errorText: layC.errNama.value,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              )),
+                    controller: layC.namaLayananCtrl,
+                    textCapitalization: TextCapitalization.none,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r"[a-zA-Z0-9\s\-\&\.\']")),
+                    ],
+                    decoration: InputDecoration(
+                      labelText: "Nama Layanan",
+                      errorText: layC.errNama.value,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  )),
               const SizedBox(height: 16),
-
               Obx(() => TextField(
-                controller: layC.hargaCtrl,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly], 
-                onChanged: (val) => layC.formatHarga(val, layC.hargaCtrl), 
-                decoration: InputDecoration(
-                  labelText: "Harga (Rp)",
-                  errorText: layC.errHarga.value,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  prefixText: "Rp ",
-                ),
-              )),
+                    controller: layC.hargaCtrl,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    onChanged: (val) => layC.formatHarga(val, layC.hargaCtrl),
+                    decoration: InputDecoration(
+                      labelText: "Harga (Rp)",
+                      errorText: layC.errHarga.value,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      prefixText: "Rp ",
+                    ),
+                  )),
               const SizedBox(height: 16),
-
               Obx(() => TextField(
-                controller: layC.durasiCtrl,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(
-                  labelText: "Durasi (Jam)",
-                  errorText: layC.errDurasi.value,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  suffixText: "Jam",
-                ),
-              )),
+                    controller: layC.durasiCtrl,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      labelText: "Durasi (Jam)",
+                      errorText: layC.errDurasi.value,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      suffixText: "Jam",
+                    ),
+                  )),
               const SizedBox(height: 24),
-
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: Obx(() => ElevatedButton(
-                  onPressed: layC.isLoading.value ? null : () => layC.updateLayanan(service['id'] as int),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2196F3),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: layC.isLoading.value 
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
-                    : const Text("SIMPAN PERUBAHAN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                )),
+                      onPressed: layC.isLoading.value
+                          ? null
+                          : () => layC.updateLayanan(service['id'] as int),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2196F3),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: layC.isLoading.value
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(color: Colors.white))
+                          : const Text("SIMPAN PERUBAHAN",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold)),
+                    )),
               )
             ],
           ),

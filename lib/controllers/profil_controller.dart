@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:flutter/services.dart';
 import 'user_controller.dart';
 
 class ProfilController extends GetxController {
   final supabase = Supabase.instance.client;
   final userC = Get.find<UserController>();
+  final LocalAuthentication auth = LocalAuthentication();
 
   final namaCtrl = TextEditingController();
   final emailCtrl = TextEditingController();
@@ -48,6 +51,26 @@ class ProfilController extends GetxController {
 
   bool hasEmoji(String text) {
     return RegExp(r'[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]', unicode: true).hasMatch(text);
+  }
+
+  Future<bool> _authenticateUser() async {
+    try {
+      bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
+      bool canAuthenticate = canAuthenticateWithBiometrics || await auth.isDeviceSupported();
+
+      if (!canAuthenticate) return true;
+
+      return await auth.authenticate(
+        localizedReason: 'Verifikasi identitas untuk mengubah profil pribadi',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: false,
+        ),
+      );
+    } on PlatformException catch (e) {
+      debugPrint("Error Biometric: $e");
+      return false;
+    }
   }
 
   Future<void> simpanProfil() async {
@@ -98,6 +121,13 @@ class ProfilController extends GetxController {
 
     if (!isValid) return;
 
+    bool isAuthorized = await _authenticateUser();
+    if (!isAuthorized) {
+      HapticFeedback.heavyImpact();
+      Get.snackbar("Akses Ditolak", "Gagal memverifikasi identitas. Perubahan dibatalkan.", backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
     try {
       isLoading.value = true;
       final currentUser = supabase.auth.currentUser;
@@ -125,6 +155,7 @@ class ProfilController extends GetxController {
 
       await userC.getUserProfile();
 
+      HapticFeedback.mediumImpact();
       Get.back();
       Get.snackbar("Sukses", "Profil berhasil diperbarui", backgroundColor: Colors.green, colorText: Colors.white);
 

@@ -7,7 +7,7 @@ class HomeController extends GetxController {
   final supabase = Supabase.instance.client;
   final userC = Get.find<UserController>();
 
-  var activeTab = 1.obs; 
+  var activeTab = 1.obs;
   var bottomNavIndex = 0.obs;
 
   var isTabTransaksi = true.obs;
@@ -23,13 +23,13 @@ class HomeController extends GetxController {
   var countBatal = 0.obs;
 
   var countMasukHariIni = 0.obs;
-  var countHarusSelesai = 0.obs; 
+  var countHarusSelesai = 0.obs;
 
-  var countTerlambat = 0.obs;    
+  var countTerlambat = 0.obs;
 
   var countBelumLunas = 0.obs;
   var nominalPiutang = 0.obs;
-  var totalKasbonSemuaPelanggan = 0.obs; 
+  var totalKasbonSemuaPelanggan = 0.obs;
 
   @override
   void onInit() {
@@ -44,12 +44,11 @@ class HomeController extends GetxController {
   void changeBottomNav(int index) {
     bottomNavIndex.value = index;
     if (index == 0) {
-      refreshDashboard(); 
+      refreshDashboard();
     }
   }
 
   Future<void> refreshDashboard() async {
-
     if (userC.outletId == null) return;
 
     try {
@@ -60,16 +59,21 @@ class HomeController extends GetxController {
       final endOfDayLocal = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
       final cashflowData = await supabase
-          .from('cashflows') 
-          .select('nominal, tipe_arus, waktu_catat') 
-          .eq('outlet_id', userC.outletId); 
+          .from('cashflows')
+          .select('nominal, tipe_arus, waktu_catat, transactions(status_pesanan)')
+          .eq('outlet_id', userC.outletId);
 
       int totalOmzet = 0;
       for (var item in cashflowData) {
-        if (item['waktu_catat'] != null && item['tipe_arus']?.toString().toLowerCase() == 'pemasukan') {
+        if (item['waktu_catat'] != null) {
           DateTime tglCatat = DateTime.parse(item['waktu_catat'].toString()).toLocal();
           if (tglCatat.isAfter(startOfDayLocal) && tglCatat.isBefore(endOfDayLocal)) {
-             totalOmzet += (item['nominal'] ?? 0) as int;
+
+            bool isBatal = item['transactions'] != null && item['transactions']['status_pesanan']?.toString().toLowerCase() == 'batal';
+
+            if (!isBatal && item['tipe_arus']?.toString().toLowerCase() == 'pemasukan') {
+               totalOmzet += (item['nominal'] ?? 0) as int;
+            }
           }
         }
       }
@@ -105,11 +109,9 @@ class HomeController extends GetxController {
             if (item['estimasi_selesai'] != null) {
               DateTime estimasi = DateTime.parse(item['estimasi_selesai'].toString()).toLocal();
               if (estimasi.isBefore(now)) {
-                cTelat++; 
-
+                cTelat++;
               } else {
-                cDeadline++; 
-
+                cDeadline++;
               }
             }
         }
@@ -139,7 +141,7 @@ class HomeController extends GetxController {
       pesananAktif.value = cProses + cSelesai;
 
       countMasukHariIni.value = cMasuk;
-      countHarusSelesai.value = cDeadline; 
+      countHarusSelesai.value = cDeadline;
       countTerlambat.value = cTelat;
 
       countBelumLunas.value = cBelumLunas;
@@ -154,7 +156,7 @@ class HomeController extends GetxController {
       pelangganBaru.value = custBaru.length;
 
     } catch (e) {
-      debugPrint("Error Refresh: "); 
+      debugPrint("Error Refresh: $e");
     } finally {
       isLoading.value = false;
     }

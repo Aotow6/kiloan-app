@@ -209,7 +209,7 @@ class DetailPesananController extends GetxController {
 
       listItems.assignAll(List<Map<String, dynamic>>.from(data));
 
-      final latestHeader = await supabase.from('transactions').select('*, customers(*)').eq('id', transactionId).single();
+      final latestHeader = await supabase.from('transactions').select('*, customers(*), outlets(*)').eq('id', transactionId).single();
       headerData.value = latestHeader;
 
       if (latestHeader['tipe_logistik'] != 'none' && latestHeader['alamat_layanan'] != null) {

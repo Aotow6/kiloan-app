@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:laundry_app/controllers/error_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:path_provider/path_provider.dart'; 
-import 'package:share_plus/share_plus.dart'; 
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:flutter/services.dart';
 
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -16,13 +18,14 @@ import 'user_controller.dart';
 class LaporanController extends GetxController {
   final supabase = Supabase.instance.client;
   final userC = Get.find<UserController>();
+  final LocalAuthentication auth = LocalAuthentication();
 
   var selectedPeriode = "".obs;
   var listPeriode = <String>[].obs;
 
-  var totalPemasukan = 0.obs; 
-  var totalPesanan = 0.obs; 
-  var totalPiutang = 0.obs; 
+  var totalPemasukan = 0.obs;
+  var totalPesanan = 0.obs;
+  var totalPiutang = 0.obs;
 
   var isLoading = false.obs;
 
@@ -79,13 +82,13 @@ class LaporanController extends GetxController {
       int monthIndex = _namaBulan.indexOf(monthName);
 
       DateTime startDateLocal = DateTime(year, monthIndex, 1, 0, 0, 0);
-      DateTime endDateLocal = (monthIndex == 12) 
-          ? DateTime(year + 1, 1, 1, 23, 59, 59).subtract(const Duration(days: 1)) 
+      DateTime endDateLocal = (monthIndex == 12)
+          ? DateTime(year + 1, 1, 1, 23, 59, 59).subtract(const Duration(days: 1))
           : DateTime(year, monthIndex + 1, 1, 23, 59, 59).subtract(const Duration(days: 1));
 
       final cashflowBulanan = await supabase
           .from('cashflows')
-          .select('nominal, tipe_arus, waktu_catat')
+          .select('nominal, tipe_arus, waktu_catat, transactions(status_pesanan)')
           .eq('outlet_id', userC.outletId!);
 
       int masuk = 0;
@@ -94,9 +97,12 @@ class LaporanController extends GetxController {
          if (item['waktu_catat'] != null) {
             DateTime tglCatat = DateTime.parse(item['waktu_catat'].toString()).toLocal();
             if (tglCatat.isAfter(startDateLocal) && tglCatat.isBefore(endDateLocal)) {
-                if (item['tipe_arus'].toString().toLowerCase() == 'pemasukan') {
+
+                bool isBatal = item['transactions'] != null && item['transactions']['status_pesanan']?.toString().toLowerCase() == 'batal';
+
+                if (!isBatal && item['tipe_arus'].toString().toLowerCase() == 'pemasukan') {
                    masuk += (item['nominal'] ?? 0) as int;
-                } 
+                }
             }
          }
       }
@@ -114,10 +120,13 @@ class LaporanController extends GetxController {
          if (trx['waktu_masuk'] != null) {
             DateTime tglTrx = DateTime.parse(trx['waktu_masuk'].toString()).toLocal();
             if (tglTrx.isAfter(startDateLocal) && tglTrx.isBefore(endDateLocal)) {
-                pesanan++;
 
                 String statusBayar = (trx['status_pembayaran'] ?? '').toString();
                 String statusPesanan = (trx['status_pesanan'] ?? '').toString().toLowerCase();
+
+                if (statusPesanan != 'batal') {
+                   pesanan++;
+                }
 
                 if (statusBayar != 'Lunas' && statusPesanan != 'batal') {
                    int tagihan = (trx['total_tagihan'] ?? 0) as int;
@@ -139,7 +148,34 @@ class LaporanController extends GetxController {
     }
   }
 
+  Future<bool> _authenticateUser() async {
+    try {
+      bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
+      bool canAuthenticate = canAuthenticateWithBiometrics || await auth.isDeviceSupported();
+
+      if (!canAuthenticate) return true;
+
+      return await auth.authenticate(
+        localizedReason: 'Verifikasi identitas untuk mencetak laporan',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: false,
+        ),
+      );
+    } on PlatformException catch (e) {
+      debugPrint("Error Biometric: $e");
+      return false;
+    }
+  }
+
   Future<void> cetakLaporanPDF() async {
+    bool isAuthorized = await _authenticateUser();
+    if (!isAuthorized) {
+      HapticFeedback.heavyImpact();
+      Get.snackbar("Akses Ditolak", "Gagal memverifikasi identitas. Laporan tidak dapat dicetak.", backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
     try {
       isLoading.value = true;
 
@@ -147,13 +183,13 @@ class LaporanController extends GetxController {
       int year = int.parse(parts[1]);
       int monthIndex = _namaBulan.indexOf(parts[0]);
       DateTime startDateLocal = DateTime(year, monthIndex, 1, 0, 0, 0);
-      DateTime endDateLocal = (monthIndex == 12) 
-          ? DateTime(year + 1, 1, 1, 23, 59, 59).subtract(const Duration(days: 1)) 
+      DateTime endDateLocal = (monthIndex == 12)
+          ? DateTime(year + 1, 1, 1, 23, 59, 59).subtract(const Duration(days: 1))
           : DateTime(year, monthIndex + 1, 1, 23, 59, 59).subtract(const Duration(days: 1));
 
       final rawCashflow = await supabase
           .from('cashflows')
-          .select('nominal, keterangan, metode_bayar, waktu_catat')
+          .select('nominal, keterangan, metode_bayar, waktu_catat, transactions(status_pesanan)')
           .eq('outlet_id', userC.outletId)
           .eq('tipe_arus', 'Pemasukan')
           .order('waktu_catat', ascending: true);
@@ -163,12 +199,17 @@ class LaporanController extends GetxController {
          if (row['waktu_catat'] != null) {
             DateTime tglCatat = DateTime.parse(row['waktu_catat'].toString()).toLocal();
             if (tglCatat.isAfter(startDateLocal) && tglCatat.isBefore(endDateLocal)) {
-                riwayatPemasukan.add({
-                   'tanggal': DateFormat('dd/MM/yyyy HH:mm').format(tglCatat),
-                   'nominal': row['nominal'] ?? 0,
-                   'keterangan': row['keterangan'] ?? '-',
-                   'metode': row['metode_bayar'] ?? 'Tunai',
-                });
+
+                bool isBatal = row['transactions'] != null && row['transactions']['status_pesanan']?.toString().toLowerCase() == 'batal';
+
+                if (!isBatal) {
+                    riwayatPemasukan.add({
+                       'tanggal': DateFormat('dd/MM/yyyy HH:mm').format(tglCatat),
+                       'nominal': row['nominal'] ?? 0,
+                       'keterangan': row['keterangan'] ?? '-',
+                       'metode': row['metode_bayar'] ?? 'Tunai',
+                    });
+                }
             }
          }
       }
@@ -287,12 +328,13 @@ class LaporanController extends GetxController {
       String safePeriode = selectedPeriode.value.replaceAll(' ', '_');
       String fileName = 'Laporan_Kinerja_${safeOutletName}_$safePeriode.pdf';
 
-      final directory = await getTemporaryDirectory(); 
+      final directory = await getTemporaryDirectory();
       final file = File('${directory.path}/$fileName');
       await file.writeAsBytes(bytes);
 
+      HapticFeedback.mediumImpact();
       await Share.shareXFiles(
-        [XFile(file.path)], 
+        [XFile(file.path)],
         text: 'Laporan Kinerja $namaOutlet - Periode $safePeriode'
       );
 

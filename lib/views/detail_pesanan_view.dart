@@ -117,61 +117,70 @@ class DetailPesananView extends StatelessWidget {
                              payC.idCustomer.value = h['customer_id'] ?? 0;
                              Get.to(() => PembayaranView());
                           } else {
-                            Get.bottomSheet(
-                              Container(
+                            bool allowKasbon = h['outlets']?['allow_kasbon'] ?? true;
 
-                                padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPadding),
-                                decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text("Pilih Metode", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                    const SizedBox(height: 20),
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          Get.back();
-                                          final payC = Get.put(PembayaranController());
-                                          payC.totalTagihan.value = h['total_tagihan'] ?? 0;
-                                          payC.idTransaksi.value = h['id'] ?? 0;
-                                          payC.idCustomer.value = h['customer_id'] ?? 0;
-                                          Get.to(() => PembayaranView());
-                                        },
-                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(vertical: 14)),
-                                        child: const Text("Bayar Lunas Sekarang", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
+                            if (!allowKasbon) {
+                              final payC = Get.put(PembayaranController());
+                              payC.totalTagihan.value = h['total_tagihan'] ?? 0;
+                              payC.idTransaksi.value = h['id'] ?? 0;
+                              payC.idCustomer.value = h['customer_id'] ?? 0;
+                              Get.to(() => PembayaranView());
+                            } else {
+                              Get.bottomSheet(
+                                Container(
+                                  padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPadding),
+                                  decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text("Pilih Metode", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                      const SizedBox(height: 20),
                                       SizedBox(
-                                      width: double.infinity,
-                                      child: OutlinedButton(
-                                        onPressed: () {
-                                          Get.defaultDialog(
-                                            title: "Jadikan Bon?",
-                                            middleText: "Tagihan Rp ${_formatRupiah(h['total_tagihan'] ?? 0)} akan masuk ke hutang pelanggan.",
-                                            textConfirm: "Ya, Jadikan Bon",
-                                            confirmTextColor: Colors.white,
-                                            textCancel: "Batal",
-                                            onConfirm: () {
-                                              detailC.prosesJadikanBon(h['id'], h['customer_id'], h['total_tagihan']);
-                                            }
-                                          );
-                                        },
-                                        style: OutlinedButton.styleFrom(foregroundColor: Colors.orange, side: const BorderSide(color: Colors.orange), padding: const EdgeInsets.symmetric(vertical: 14)),
-                                        child: const Text("Masukkan Ke Kasbon", style: TextStyle(fontWeight: FontWeight.bold)),
+                                        width: double.infinity,
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            Get.back();
+                                            final payC = Get.put(PembayaranController());
+                                            payC.totalTagihan.value = h['total_tagihan'] ?? 0;
+                                            payC.idTransaksi.value = h['id'] ?? 0;
+                                            payC.idCustomer.value = h['customer_id'] ?? 0;
+                                            Get.to(() => PembayaranView());
+                                          },
+                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(vertical: 14)),
+                                          child: const Text("Bayar Lunas Sekarang", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                        ),
                                       ),
-                                    )
-                                  ],
-                                ),
-                              )
-                            );
+                                      const SizedBox(height: 12),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: OutlinedButton(
+                                          onPressed: () {
+                                            Get.defaultDialog(
+                                              title: "Jadikan Bon?",
+                                              middleText: "Tagihan Rp ${_formatRupiah(h['total_tagihan'] ?? 0)} akan masuk ke hutang pelanggan.",
+                                              textConfirm: "Ya, Jadikan Bon",
+                                              confirmTextColor: Colors.white,
+                                              textCancel: "Batal",
+                                              onConfirm: () {
+                                                detailC.prosesJadikanBon(h['id'], h['customer_id'], h['total_tagihan']);
+                                              }
+                                            );
+                                          },
+                                          style: OutlinedButton.styleFrom(foregroundColor: Colors.orange, side: const BorderSide(color: Colors.orange), padding: const EdgeInsets.symmetric(vertical: 14)),
+                                          child: const Text("Masukkan Ke Kasbon", style: TextStyle(fontWeight: FontWeight.bold)),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                )
+                              );
+                            }
                           }
                         },
                         icon: const Icon(Icons.payments_outlined, color: Colors.white),
                         label: Text(isBon ? "LUNASI BON (HUTANG)" : "PROSES PEMBAYARAN", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: isBon ? Colors.orange.shade700 : const Color(0xFFFF9800),
+                          backgroundColor: isBon ? Colors.orange.shade700 : const Color.fromARGB(255, 2, 135, 15),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                         ),

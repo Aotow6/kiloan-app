@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; 
+import 'package:flutter/services.dart';
 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -15,7 +15,7 @@ class OutletView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      homeC.changeBottomNav(3); 
+      homeC.changeBottomNav(3);
     });
 
     return Scaffold(
@@ -52,8 +52,8 @@ class OutletView extends StatelessWidget {
                 children: [
                   _buildLabel("Nama Outlet", isRequired: true),
                   Obx(() => _buildTextField(
-                    hint: "Contoh: Raya Laundry Samarinda", 
-                    icon: FontAwesomeIcons.shop, 
+                    hint: "Contoh: Raya Laundry Samarinda",
+                    icon: FontAwesomeIcons.shop,
                     controller: outletC.namaCtrl,
                     errorText: outletC.errNama.value,
 
@@ -66,9 +66,9 @@ class OutletView extends StatelessWidget {
 
                   _buildLabel("Alamat", isRequired: true),
                   Obx(() => _buildTextField(
-                    hint: "Jl. Antasari No. 12, Samarinda", 
-                    icon: FontAwesomeIcons.mapLocationDot, 
-                    maxLines: 4, 
+                    hint: "Jl. Antasari No. 12, Samarinda",
+                    icon: FontAwesomeIcons.mapLocationDot,
+                    maxLines: 4,
                     controller: outletC.alamatCtrl,
                     errorText: outletC.errAlamat.value,
 
@@ -88,7 +88,7 @@ class OutletView extends StatelessWidget {
                           label: "Jam Buka",
                           time: outletC.jamBuka.value,
                           icon: FontAwesomeIcons.doorOpen,
-                          onTap: () => outletC.pilihJam(context, true) 
+                          onTap: () => outletC.pilihJam(context, true)
                         )),
                       ),
                       const SizedBox(width: 16),
@@ -97,9 +97,37 @@ class OutletView extends StatelessWidget {
                           label: "Jam Tutup",
                           time: outletC.jamTutup.value,
                           icon: FontAwesomeIcons.doorClosed,
-                          onTap: () => outletC.pilihJam(context, false) 
+                          onTap: () => outletC.pilihJam(context, false)
                         )),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  const Divider(),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("Izinkan Kasbon (Hutang)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
+                            const SizedBox(height: 4),
+                            Text("Jika aktif, pelanggan dapat berhutang saat mengambil pesanan.", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                          ],
+                        ),
+                      ),
+                      Obx(() => Switch(
+                        value: outletC.isAllowKasbon.value,
+                        activeColor: const Color(0xFF2196F3),
+                        activeTrackColor: Colors.blue.shade100,
+                        onChanged: (val) {
+                          outletC.isAllowKasbon.value = val;
+                          HapticFeedback.selectionClick();
+                        },
+                      )),
                     ],
                   ),
                 ],
@@ -117,13 +145,13 @@ class OutletView extends StatelessWidget {
                     backgroundColor: const Color(0xFF2196F3), padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
-                  child: outletC.isLoading.value 
+                  child: outletC.isLoading.value
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : const Text("Simpan Profil", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
                 )),
               ),
             ),
-            const SizedBox(height: 40), 
+            const SizedBox(height: 40),
           ],
         ),
       ),
@@ -143,21 +171,21 @@ class OutletView extends StatelessWidget {
   }
 
   Widget _buildTextField({
-    required String hint, 
-    required IconData icon, 
-    int maxLines = 1, 
+    required String hint,
+    required IconData icon,
+    int maxLines = 1,
     TextEditingController? controller,
     String? errorText,
-    List<TextInputFormatter>? inputFormatters, 
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
-      inputFormatters: inputFormatters, 
+      inputFormatters: inputFormatters,
 
       decoration: InputDecoration(
         hintText: hint,
-        errorText: errorText, 
+        errorText: errorText,
 
         hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
 

@@ -135,16 +135,22 @@ class PengaturanView extends StatelessWidget {
                     : const SizedBox.shrink()
                   ),
 
-                  _buildMenuItem(
-                    icon: FontAwesomeIcons.users, 
-                    title: "Pelanggan Saya", 
-                    subtitle: "Daftar pelanggan yang terdaftar di outlet", 
-                    iconColor: Colors.lightBlue.shade600,
-                    onTap: () {Get.to(() => KelolaPelangganView());}
+                  Obx(() => userC.isOwner 
+                    ? Column(
+                        children: [
+                         _buildMenuItem(
+                          icon: FontAwesomeIcons.users, 
+                          title: "Pelanggan Saya", 
+                          subtitle: "Daftar pelanggan yang terdaftar di outlet", 
+                          iconColor: Colors.lightBlue.shade600,
+                          onTap: () {Get.to(() => KelolaPelangganView());}
+                        ),
+                          _divider(),
+                        ],
+                      )
+                    : const SizedBox.shrink()
                   ),
-
-                  _divider(),
-
+                  
                   Obx(() => userC.isOwner 
                     ? Column(
                         children: [
