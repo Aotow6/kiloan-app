@@ -119,6 +119,7 @@ class TambahPegawaiController extends GetxController {
       isLoading.value = true;
 
       if (isEdit.value) {
+
         await supabase.from('users').update({
           'nama_lengkap': nama,
           'no_hp': telepon,
@@ -161,8 +162,29 @@ class TambahPegawaiController extends GetxController {
           }
         } finally {
           tempSupabase.dispose();
+        final AuthResponse res = await supabase.auth.signUp(
+          email: email,
+          password: password,
+        );
+
+        final User? user = res.user;
+
+        if (user != null) {
+          await supabase.from('users').insert({
+            'id': user.id,
+            'outlet_id': userC.outletId,
+            'nama_lengkap': nama,
+            'role': 'Kasir', 
+
+            'no_hp': telepon,
+            'status_aktif': true,
+          });
+
+          Get.back();
+          Get.snackbar("Sukses", "Akun kasir berhasil dibuat", backgroundColor: Colors.green, colorText: Colors.white);
         }
       }
+    }
 
       if (Get.isRegistered<KelolaPegawaiController>()) {
         Get.find<KelolaPegawaiController>().fetchPegawai();

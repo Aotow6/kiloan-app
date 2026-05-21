@@ -114,7 +114,7 @@ class LayananController extends GetxController {
       errKategori.value = "Kategori tidak boleh mengandung emoji";
       isValid = false;
     }
-
+    
     if (nama.isEmpty) {
       errNama.value = "Nama layanan wajib diisi";
       isValid = false;
@@ -122,6 +122,7 @@ class LayananController extends GetxController {
       errNama.value = "Minimal 3 karakter";
       isValid = false;
     } else if (hasEmoji(nama)) { 
+
       errNama.value = "Nama tidak boleh mengandung emoji";
       isValid = false;
     }
@@ -200,6 +201,7 @@ class LayananController extends GetxController {
       errKategori.value = "Kategori wajib diisi";
       isValid = false;
     } else if (hasEmoji(kategori)) { 
+
       errKategori.value = "Kategori tidak boleh mengandung emoji";
       isValid = false;
     }
@@ -211,6 +213,7 @@ class LayananController extends GetxController {
       errNama.value = "Minimal 3 karakter";
       isValid = false;
     } else if (hasEmoji(nama)) { 
+
       errNama.value = "Nama tidak boleh mengandung emoji";
       isValid = false;
     }
@@ -279,6 +282,7 @@ class LayananController extends GetxController {
             'deleted_at': DateTime.now().toUtc().toIso8601String()
           }).eq('id', id);
 
+          await supabase.from('services').delete().eq('id', id);
           fetchServices(); 
           Get.back(); 
           Get.snackbar("Berhasil", "$nama telah dihapus", backgroundColor: Colors.red, colorText: Colors.white);

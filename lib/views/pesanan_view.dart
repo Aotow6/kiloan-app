@@ -19,6 +19,7 @@ class _PesananViewState extends State<PesananView> {
   final HomeController homeC = Get.find<HomeController>();
   
   // 🔥 SCROLL CONTROLLER DIPASANG DI SINI BUKAN DI CONTROLLER 🔥
+  
   final ScrollController _scrollC = ScrollController();
 
   @override

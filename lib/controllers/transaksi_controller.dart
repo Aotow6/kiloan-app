@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:laundry_app/services/sensor_service.dart';
+
 import 'user_controller.dart';
 import 'layanan_controller.dart';
 import 'pesanan_controller.dart'; 
@@ -38,6 +41,8 @@ class TransaksiController extends GetxController {
   var isEditMode = false.obs;
   var idTransaksiEdit = 0.obs;
 
+  var fotoBukti = Rxn<XFile>();
+
   final alamatCtrl = TextEditingController();
   final catatanCtrl = TextEditingController();
 
@@ -65,9 +70,7 @@ class TransaksiController extends GetxController {
     final ongkirCtrl = TextEditingController(text: deliveryFee.value == 0 ? "" : deliveryFee.value.toString());
     Get.dialog(Dialog(
         backgroundColor: Colors.white, 
-
         surfaceTintColor: Colors.transparent, 
-
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -101,7 +104,6 @@ class TransaksiController extends GetxController {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2196F3), 
-
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -174,8 +176,35 @@ class TransaksiController extends GetxController {
     }
   }
 
+  Future<void> ambilFotoBaju() async {
+    final sensorS = Get.find<SensorService>();
+    final foto = await sensorS.ambilFoto();
+    if (foto != null) {
+      fotoBukti.value = foto;
+    }
+  }
+
+  Future<void> tarikAlamatPelanggan(String idCustomer) async {
+    if (idCustomer.isEmpty || idCustomer == "0") return;
+
+    try {
+      final data = await supabase
+          .from('customers')
+          .select('alamat')
+          .eq('id', int.parse(idCustomer))
+          .maybeSingle(); 
+
+      if (data != null && data['alamat'] != null) {
+        alamatCtrl.text = data['alamat'].toString();
+      }
+    } catch (e) {
+      debugPrint("Gagal mengambil alamat pelanggan: $e");
+    }
+  }
+
   Future<void> buatTransaksi(String id, String nama, String phone) async {
     if (cart.isEmpty) {
+      HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
       Get.snackbar("Error", "Pesanan tidak boleh kosong!", backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
@@ -186,22 +215,27 @@ class TransaksiController extends GetxController {
       String alamat = alamatCtrl.text.trim();
 
       if (alamat.isEmpty) {
+        HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
         Get.snackbar("Error", "Alamat antar jemput wajib diisi!", backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }
       if (hasEmoji(alamat)) {
+        HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
         Get.snackbar("Error", "Alamat tidak boleh mengandung emoji!", backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }
       if (alamat.length < 5) {
+        HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
         Get.snackbar("Error", "Alamat terlalu pendek! Minimal 5 karakter.", backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }
       if (!isPenjemputan.value && !isPengantaran.value) {
+        HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
         Get.snackbar("Error", "Pilih minimal satu: Penjemputan atau Pengantaran!", backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }
       if (deliveryFee.value <= 0) {
+        HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
         Get.snackbar("Error", "Ongkos kirim wajib diisi jika antar jemput aktif!", backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }
@@ -217,6 +251,7 @@ class TransaksiController extends GetxController {
 
     String catatan = catatanCtrl.text.trim();
     if (catatan.isNotEmpty && hasEmoji(catatan)) {
+      HapticFeedback.heavyImpact(); // GETAR ERROR KASAR
       Get.snackbar("Error", "Catatan tidak boleh mengandung emoji!", backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
@@ -224,7 +259,7 @@ class TransaksiController extends GetxController {
     try {
       isLoading.value = true;
 
-            if (isEditMode.value) {
+      if (isEditMode.value) {
         int trkId = idTransaksiEdit.value;
 
         await supabase.from('transactions').update({
@@ -248,12 +283,11 @@ class TransaksiController extends GetxController {
         isEditMode.value = false;
         idTransaksiEdit.value = 0;
 
+        HapticFeedback.mediumImpact(); // GETAR SUKSES HALUS
         Get.back(result: true); 
 
         Get.snackbar("Sukses", "Transaksi berhasil diperbarui!", backgroundColor: Colors.green, colorText: Colors.white);
-      }
-
-      else {
+      } else {
         String nota = "NOT-${DateTime.now().millisecondsSinceEpoch}";
 
         final trxRes = await supabase.from('transactions').insert({
@@ -282,6 +316,8 @@ class TransaksiController extends GetxController {
 
         await supabase.from('transaction_details').insert(details);
 
+        HapticFeedback.mediumImpact(); // GETAR SUKSES HALUS
+
         Get.defaultDialog(
           title: "Sukses",
           titleStyle: const TextStyle(fontWeight: FontWeight.bold),
@@ -298,7 +334,6 @@ class TransaksiController extends GetxController {
             ),
             ElevatedButton(
               onPressed: () async {
-
                 Get.back(); 
 
                 Get.showOverlay(
@@ -307,11 +342,9 @@ class TransaksiController extends GetxController {
                       final PesananController pesananC = Get.put(PesananController());
                       final detailData = await pesananC.fetchDetailPesanan(trxRes['id']);
                       if (detailData != null) {
-
-                        Get.offAll(() => PesananView());
+                        Get.offAll(() => const PesananView());
                         await Future.delayed(const Duration(milliseconds: 300));
                         Get.to(() => DetailPesananView(data: detailData));
-
                       } else {
                         Get.snackbar("Waduh", "Gagal ngambil detail pesanan nih");
                       }
@@ -339,6 +372,8 @@ class TransaksiController extends GetxController {
       isAntarJemput.value = false;
 
     } catch (e) {
+      fotoBukti.value = null; 
+      HapticFeedback.vibrate(); // GETAR ERROR SYSTEM
       Get.snackbar("Gagal", "Terjadi kesalahan: ", backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;

@@ -137,6 +137,7 @@ class KelolaPegawaiController extends GetxController {
           }).eq('id', id);
 
           await supabase.rpc('hapus_auth_pegawai', params: {'uid': id});
+          await supabase.from('users').delete().eq('id', id);
 
           await fetchPegawai(); 
           Get.back(); 

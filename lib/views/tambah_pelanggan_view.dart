@@ -167,6 +167,29 @@ class TambahPelangganView extends StatelessWidget {
                             const Text("Tanpa nomor telepon"),
                           ],
                         )),
+
+                    const SizedBox(height: 12),
+                    
+                    // KODE TOMBOL GPS SUDAH DIHAPUS DI SINI
+                    Obx(() => TextField(
+                      controller: pelangganC.alamatCtrl,
+                      maxLines: 2,
+                      decoration: InputDecoration(
+                        hintText: "Alamat Lengkap",
+                        errorText: pelangganC.errAlamat.value,
+                        filled: true,
+                        fillColor: Colors.grey.shade100,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.red),
+                        ),
+                      ),
+                    )),
+                    
                   ],
                 ),
               ),

@@ -9,6 +9,7 @@ import 'package:laundry_app/controllers/home_controller.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'views/login_view.dart';
 import 'views/home_view.dart';
+import 'package:laundry_app/services/sensor_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,10 @@ void main() async {
 
   Get.put(UserController(), permanent: true);
   Get.put(HomeController(), permanent: true); 
+  Get.put(HomeController(), permanent: true);
+  Get.put(SensorService(), permanent: true); 
+  Get.lazyPut(() => LayananController());
+  Get.lazyPut(() => PelangganController());
   Get.lazyPut(() => LayananController());
   Get.lazyPut(() => PelangganController());
 

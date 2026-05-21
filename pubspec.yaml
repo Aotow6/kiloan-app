@@ -21,6 +21,10 @@ dependencies:
   share_whatsapp: ^1.0.2
   share_plus: ^12.0.2
   flutter_native_contact_picker: ^0.0.11
+  image_picker: ^1.0.7      
+  mobile_scanner: ^3.5.5           
+  local_auth: ^2.1.7         
+
 
 dev_dependencies:
   flutter_test:

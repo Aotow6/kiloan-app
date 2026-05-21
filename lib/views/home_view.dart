@@ -278,6 +278,7 @@ class HomeView extends StatelessWidget {
                                     homeC.changeBottomNav(2);
                                     Get.to(() => LaporanView()); 
                                     homeC.changeBottomNav(0); 
+                                    homeC.changeBottomNav(2); 
                                   },
                                 ),
                               ],
