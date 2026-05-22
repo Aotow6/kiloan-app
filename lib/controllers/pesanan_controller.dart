@@ -169,22 +169,62 @@ class PesananController extends GetxController {
     } catch (e) { Get.snackbar("Error", "Terjadi kesalahan"); }
   }
 
-  Future<void> hapusTransaksiPermanen(int transactionId) async {
+  Future<void> hapusTransaksiPermanen(int id) async {
     Get.defaultDialog(
-      title: "Hapus Transaksi",
-      middleText: "Hapus permanen?",
-      textConfirm: "Ya", textCancel: "Batal",
+      title: "Hapus Permanen?",
+      middleText: "Yakin ingin menghapus transaksi ini beserta fotonya dari database?",
+      textCancel: "Batal",
+      textConfirm: "Hapus",
+      confirmTextColor: Colors.white,
+      buttonColor: Colors.red,
       onConfirm: () async {
-        Get.back(); 
         try {
+          Get.back();
           isLoading.value = true;
-          await supabase.from('transaction_details').delete().eq('transaction_id', transactionId);
-          await supabase.from('cashflows').delete().eq('transaction_id', transactionId);
-          await supabase.from('transactions').delete().eq('id', transactionId);
-          await fetchPesanan(); 
-          Get.back(); 
-        } catch (e) { Get.snackbar("Error", "Terjadi kesalahan"); }
-        finally { isLoading.value = false; }
+
+          final trx = await supabase
+              .from('transactions')
+              .select('foto_bukti')
+              .eq('id', id)
+              .maybeSingle();
+
+          if (trx != null && trx['foto_bukti'] != null) {
+            String urlFoto = trx['foto_bukti'].toString();
+            if (urlFoto.isNotEmpty) {
+              try {
+                final Uri uri = Uri.parse(urlFoto);
+                final String path = uri.path;
+                final List<String> segments = path.split('foto_baju/');
+
+                if (segments.length > 1) {
+                  String fileName = segments.last;
+                  debugPrint("🗑️ Menghapus foto hantu: $fileName");
+                  await supabase.storage.from('foto_baju').remove([fileName]);
+                }
+              } catch (e) {
+                debugPrint("❌ Gagal hapus foto Storage: $e");
+              }
+            }
+          }
+
+          await supabase.from('transactions').delete().eq('id', id);
+
+          await fetchPesanan();
+
+          Get.back();
+          Get.snackbar(
+            "Terhapus",
+            "Transaksi dan foto bukti berhasil dihapus permanen.",
+            backgroundColor: Colors.orange,
+            colorText: Colors.white
+          );
+
+        } catch (e) {
+          debugPrint("Error hapus transaksi: $e");
+          Get.snackbar("Gagal", "Terjadi kesalahan saat menghapus transaksi.", backgroundColor: Colors.red, colorText: Colors.white);
+        } finally {
+          isLoading.value = false;
+        }
       }
     );
   }

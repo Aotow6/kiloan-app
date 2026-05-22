@@ -108,16 +108,36 @@ class DetailPesananController extends GetxController {
   }
 }
 
-  Future<void> ubahAtauTambahFoto(int transaksiId) async {
+Future<void> ubahAtauTambahFoto(int transaksiId) async {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 70,
+        imageQuality: 50, 
+        maxWidth: 800,    
+        maxHeight: 800,   
       );
 
       if (image != null) {
         isLoading.value = true;
+
+        final String? oldUrl = headerData['foto_bukti'];
+        if (oldUrl != null && oldUrl.isNotEmpty) {
+          try {
+            final Uri uri = Uri.parse(oldUrl);
+            final String path = uri.path; 
+            final List<String> segments = path.split('foto_baju/'); 
+            
+            if (segments.length > 1) {
+              String oldFileName = segments.last; 
+              // debugPrint("🗑️ Menghapus file: $oldFileName");
+              final response = await supabase.storage.from('foto_baju').remove([oldFileName]);
+              // debugPrint("🗑️ Remove response: $response");
+            }
+          } catch (e) {
+            // debugPrint("❌ Gagal hapus foto lama: $e");
+          }
+        }
 
         final file = File(image.path);
         final fileExt = image.path.split('.').last;
@@ -157,10 +177,15 @@ class DetailPesananController extends GetxController {
           Get.back();
           isLoading.value = true;
 
-          Uri uri = Uri.parse(url);
-          String fileName = uri.pathSegments.last;
-
-          await supabase.storage.from('foto_baju').remove([fileName]);
+          // 🔥 METODE BARU EKSTRAK NAMA FILE
+          final Uri uri = Uri.parse(url);
+          final String path = uri.path; 
+          final List<String> segments = path.split('foto_baju/'); 
+          
+          if (segments.length > 1) {
+             String fileName = segments.last; 
+             await supabase.storage.from('foto_baju').remove([fileName]);
+          }
 
           await supabase.from('transactions').update({'foto_bukti': null}).eq('id', transaksiId);
 
