@@ -64,7 +64,7 @@ class CustomBottomNav extends StatelessWidget {
                   isKasir: isKasir
                 ),
                 _bottomNavItem(
-                  icon: isKasir ? Icons.person : Icons.settings,
+                  icon: isKasir ? Icons.settings : Icons.settings,
                   label: isKasir ? "Pengaturan" : "Pengaturan",
                   index: 3,
                   isKasir: isKasir

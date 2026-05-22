@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:share_whatsapp/share_whatsapp.dart'; 
-
+import '../controllers/home_controller.dart';
 import '../controllers/pelanggan_controller.dart';
 
 class DetailPelangganView extends StatelessWidget {
@@ -13,6 +13,7 @@ class DetailPelangganView extends StatelessWidget {
   DetailPelangganView({super.key, required this.nama, required this.phone, required this.id});
 
   final PelangganController pelC = Get.find<PelangganController>();
+  final HomeController homeC = Get.find<HomeController>();
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +122,7 @@ class DetailPelangganView extends StatelessWidget {
                       ],
                     ),
                   ),
-
+                  if (homeC.userC.currentUser.value?.role?.toLowerCase() != 'kasir')
                   Container(
                     width: double.infinity,
                     margin: const EdgeInsets.only(bottom: 120), 

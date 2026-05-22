@@ -28,7 +28,7 @@ class DetailPesananController extends GetxController {
   var isAntarJemputExpanded = false.obs;
   var isDetailTagihanExpanded = true.obs;
   var isDetailPembayaranExpanded = true.obs;
-
+  var isTyping = false.obs;
   var isListening = false.obs;
   var fotoUrl = "".obs;
 

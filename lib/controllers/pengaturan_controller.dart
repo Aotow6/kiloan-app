@@ -30,11 +30,11 @@ class PengaturanController extends GetxController {
   Future<void> prosesLogout() async {
     try {
       isLoading.value = true;
-
       await supabase.auth.signOut();
-
+      isLoading.value = false;
       Get.offAllNamed('/login');
     } catch (e) {
+      isLoading.value = false;
       Get.snackbar(
         "Error",
         "Gagal keluar akun: ",

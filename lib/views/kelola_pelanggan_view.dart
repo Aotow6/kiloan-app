@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:laundry_app/views/tambah_pelanggan_view.dart';
 import '../controllers/pelanggan_controller.dart';
+import '../controllers/home_controller.dart';
+
 
 class KelolaPelangganView extends StatelessWidget {
   KelolaPelangganView({super.key});
 
   final PelangganController pelC = Get.put(PelangganController());
+  final HomeController homeC = Get.find<HomeController>();
 
   @override
   Widget build(BuildContext context) {
@@ -168,6 +171,7 @@ class KelolaPelangganView extends StatelessWidget {
 
                                 onPressed: () => pelC.setEditMode(nama, telepon, id),
                               ),
+                              if (homeC.userC.currentUser.value?.role?.toLowerCase() != 'kasir')
                               IconButton(
                                 icon: const Icon(Icons.delete_outline, color: Colors.red),
                                 constraints: const BoxConstraints(),

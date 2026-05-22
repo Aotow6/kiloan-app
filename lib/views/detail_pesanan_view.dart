@@ -8,13 +8,41 @@ import '../controllers/detail_pesanan_controller.dart';
 import '../controllers/pesanan_controller.dart';
 import '../controllers/pembayaran_controller.dart';
 
-class DetailPesananView extends StatelessWidget {
+
+class DetailPesananView extends StatefulWidget {
   final Map<String, dynamic> data;
 
-  DetailPesananView({super.key, required this.data});
+  const DetailPesananView({super.key, required this.data});
 
+  @override
+  State<DetailPesananView> createState() => _DetailPesananViewState();
+}
+
+class _DetailPesananViewState extends State<DetailPesananView> {
   final DetailPesananController detailC = Get.put(DetailPesananController());
   final PesananController pesananC = Get.put(PesananController());
+  final FocusNode _catatanFocus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    detailC.initData(widget.data);
+
+    _catatanFocus.addListener(() {
+      if (_catatanFocus.hasFocus) {
+        detailC.isTyping.value = true;
+        if (detailC.isListening.value) detailC.toggleMic();
+      } else {
+        detailC.isTyping.value = false;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _catatanFocus.dispose();
+    super.dispose();
+  }
 
   String _formatRupiah(int amount) {
     return amount.toString().replaceAllMapped(
@@ -25,15 +53,14 @@ class DetailPesananView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    detailC.initData(data);
-
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return WillPopScope(
-      onWillPop: () async {
-        Get.back(result: detailC.isDataChanged);
-        return false;
-      },
+    return PopScope(
+  canPop: false, 
+  onPopInvokedWithResult: (didPop, result) {
+    if (didPop) return;
+    Get.back(result: detailC.isDataChanged);
+  },
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
         appBar: AppBar(
@@ -62,7 +89,7 @@ class DetailPesananView extends StatelessWidget {
 
         bottomNavigationBar: Obx(() {
           final Map<String, dynamic> h = Map<String, dynamic>.from(
-            detailC.headerData.isEmpty ? data : detailC.headerData
+            detailC.headerData.isEmpty ? widget.data : detailC.headerData
           );
 
           bool isLocked = h['status_pesanan'].toString().toLowerCase() == 'diambil' || h['status_pesanan'].toString().toLowerCase() == 'batal';
@@ -151,7 +178,7 @@ class DetailPesananView extends StatelessWidget {
                                         ),
                                       ),
                                       const SizedBox(height: 12),
-                                      SizedBox(
+                                        SizedBox(
                                         width: double.infinity,
                                         child: OutlinedButton(
                                           onPressed: () {
@@ -180,7 +207,7 @@ class DetailPesananView extends StatelessWidget {
                         icon: const Icon(Icons.payments_outlined, color: Colors.white),
                         label: Text(isBon ? "LUNASI BON (HUTANG)" : "PROSES PEMBAYARAN", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: isBon ? Colors.orange.shade700 : const Color.fromARGB(255, 2, 135, 15),
+                          backgroundColor: isBon ? Colors.orange.shade700 : const Color(0xFFFF9800),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                         ),
@@ -258,7 +285,7 @@ class DetailPesananView extends StatelessWidget {
           }
 
           final Map<String, dynamic> h = Map<String, dynamic>.from(
-            detailC.headerData.isEmpty ? data : detailC.headerData
+            detailC.headerData.isEmpty ? widget.data : detailC.headerData
           );
 
           bool isLocked = h['status_pesanan'].toString().toLowerCase() == 'diambil' || h['status_pesanan'].toString().toLowerCase() == 'batal';
@@ -484,51 +511,51 @@ class DetailPesananView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Informasi Tambahan (Catatan)",
-    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
-const SizedBox(height: 16),
+                      const Text("Informasi Tambahan (Catatan)", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
+                      const SizedBox(height: 16),
+                      Obx(() => TextField(
+                        controller: detailC.catatanEditCtrl,
+                        focusNode: _catatanFocus,
+                        maxLines: 2,
+                        readOnly: isLocked || isLunas || detailC.isListening.value,
+                        onTapOutside: (event) {
+                          FocusManager.instance.primaryFocus?.unfocus();
+                        },
+                        decoration: InputDecoration(
+                          hintText: detailC.isListening.value ? "Mendengarkan..." : "Misalnya : Celana jeans luntur",
+                          filled: true,
+                          fillColor: (isLocked || isLunas) ? Colors.grey.shade200 : Colors.grey.shade50,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          suffixIcon: (isLocked || isLunas) ? null : IconButton(
+                            icon: Icon(
+                              detailC.isListening.value ? Icons.mic : Icons.mic_none,
+                              color: detailC.isListening.value ? Colors.red : Colors.grey,
+                            ),
+                            onPressed: () {
+                              _catatanFocus.unfocus();
+                              detailC.toggleMic();
+                            },
+                          ),
+                        ),
+                      )),
 
-TextField(
-  controller: detailC.catatanEditCtrl,
-  maxLines: 2,
-  readOnly: isLocked || isLunas,
-  onTapOutside: (event) {
-    FocusManager.instance.primaryFocus?.unfocus();
-  },
-  decoration: InputDecoration(
-    hintText: "Misalnya : Celana jeans luntur",
-    filled: true,
-    fillColor: (isLocked || isLunas) ? Colors.grey.shade200 : Colors.grey.shade50,
-    border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    suffixIcon: (isLocked || isLunas)
-        ? null
-        : Obx(() => IconButton(
-              icon: Icon(
-                detailC.isListening.value ? Icons.mic : Icons.mic_none,
-                color: detailC.isListening.value ? Colors.red : Colors.grey,
-              ),
-              onPressed: () => detailC.toggleMic(),
-            )),
-  ),
-),
-if (!(isLocked || isLunas)) ...[
-  const SizedBox(height: 12),
-  Align(
-    alignment: Alignment.centerRight,
-    child: ElevatedButton(
-      onPressed: () => detailC.simpanCatatan(h['id']),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue.shade50,
-        foregroundColor: Colors.blue,
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      child: const Text("Simpan Catatan"),
-    ),
-  )
-],
+                      if (!(isLocked || isLunas)) ...[
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton(
+                            onPressed: () => detailC.simpanCatatan(h['id']),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade50,
+                              foregroundColor: Colors.blue,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const Text("Simpan Catatan"),
+                          ),
+                        )
+                      ],
 
                       const SizedBox(height: 24),
                       const Text("Foto Bukti Pakaian", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF102A43))),
